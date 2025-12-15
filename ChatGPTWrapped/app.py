@@ -435,6 +435,8 @@ def main() -> None:
     )
     hybrid_dna_tag()
 
+    st.write("")
+
     uploaded, timezone, use_tiktoken = _render_upload_sidebar()
 
     if not uploaded:

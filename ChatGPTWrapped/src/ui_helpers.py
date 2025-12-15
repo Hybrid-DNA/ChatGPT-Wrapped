@@ -117,17 +117,17 @@ p, .stMarkdown {{ color: var(--text); font-family: var(--font-primary); line-hei
     gap: 6px;
     padding: 6px 10px;
     border-radius: 999px;
-    background: color-mix(in srgb, var(--accent) 10%, white);
-    border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--border));
+    --background: color-mix(in srgb, var(--accent) 10%, white);
+    --border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--border));
     font-family: var(--font-secondary);
     font-size: 0.9rem;
     color: var(--text);
     text-decoration: none;
-    box-shadow: 0 8px 18px rgba(56, 125, 165, 0.14);
+    --box-shadow: 0 8px 18px rgba(56, 125, 165, 0.14);
   }}
   .hybrid-tag a {{ color: inherit; text-decoration: none; font-weight: 650; }}
   .hybrid-tag a:hover {{ text-decoration: underline; }}
-  .hybrid-tag--muted {{ background: #f5f7fb; box-shadow: none; }}
+  .hybrid-tag--muted {{ --background: #f5f7fb; box-shadow: none; }}
 
 /* Tabs & data */
 .stTabs [data-baseweb="tab"] {{

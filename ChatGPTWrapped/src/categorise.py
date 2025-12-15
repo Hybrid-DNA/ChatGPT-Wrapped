@@ -11,7 +11,7 @@ class CategoryRule:
 
 # Keep patterns broad but not too noisy. Up to 10 buckets.
 RULES: List[CategoryRule] = [
-    CategoryRule("Data engineering and SQL", re.compile(r"\b(SELECT|INSERT|UPDATE|DELETE|CREATE|ALTER|DROP|PL/pgSQL|postgres|psql|uuid|index|join|window function)\b", re.I)),
+    CategoryRule("Data engineering", re.compile(r"\b(SELECT|INSERT|UPDATE|DELETE|CREATE|ALTER|DROP|PL/pgSQL|postgres|psql|uuid|index|join|window function)\b", re.I)),
     CategoryRule("App development and code", re.compile(r"\b(streamlit|stripe|frontend|backend|api|oauth|auth|typescript|javascript|react|tauri|rust|docker|cloud run|gcp|mysql)\b", re.I)),
     CategoryRule("Troubleshooting and tooling", re.compile(r"\b(error|stack trace|traceback|npm|vite|cargo|compile|dependency|cannot be resolved|failed to run|port\s+\d+\s+is\s+in\s+use)\b", re.I)),
     CategoryRule("Data quality and parsing", re.compile(r"\b(price_parser|parse_price|canonical|normalise|normalize|dedupe|edge case|test summary|false events|lineage)\b", re.I)),
