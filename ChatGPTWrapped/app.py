@@ -448,6 +448,7 @@ def main() -> None:
                     <p class="eyebrow">No file yet</p>
                     <h3>Drop in your ChatGPT export</h3>
                     <p class="muted">Upload a ZIP or conversations.json file in the sidebar to generate your Wrapped.</p>
+                    <p class="muted">To find your ZIP, go to ChatGPT.com > Settings > Data controls > Export data > Export.</p>
                 </div>
             </div>
             """,
