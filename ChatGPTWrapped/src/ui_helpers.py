@@ -58,12 +58,12 @@ p, .stMarkdown {{ color: var(--text); font-family: var(--font-primary); line-hei
 .hero {{
   position: relative;
   overflow: hidden;
-  padding: 20px 22px 22px;
-  border-radius: 16px;
-  background: var(--surface);
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
   color: var(--text);
-  box-shadow: 0 16px 38px rgba(17, 24, 39, 0.08);
-  border: 1px solid var(--border);
+  box-shadow: none;
+  border: none;
   display: grid;
   grid-template-columns: 1fr;
   gap: 0.5rem;
