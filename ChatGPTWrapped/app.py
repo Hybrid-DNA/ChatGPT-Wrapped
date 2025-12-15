@@ -24,7 +24,7 @@ from src.analytics import (
 from src.archetypes import add_flair, assign_archetype
 from src.categorise import categorise
 from src.parse_export import ParsedMessage, parse_conversations
-from src.report_export import build_wrapped_html, build_wrapped_jpg
+from src.report_export import build_wrapped_html
 from src.tokens import estimate_tokens_heuristic, get_token_counter
 from src.ui_helpers import inject_css, metric_card, pills
 from src.theme import HEATMAP_BLUE_SCALE, apply_plotly_theme, DATA_COLORS
@@ -325,35 +325,6 @@ def _render_downloads(year_choice, timezone, archetype, metrics, cat_df, ts_df, 
         mime="text/html",
         help="A single HTML file you can open in a browser and share.",
     )
-
-    jpg_bytes = None
-    jpg_error: Optional[str] = None
-    try:
-        jpg_bytes = build_wrapped_jpg(
-            title=archetype.title,
-            tagline=archetype.tagline,
-            emoji=archetype.emoji,
-            metrics=metrics,
-            tokens_cat=cat_df,
-            tokens_time=ts_df,
-            highlights=hi,
-            year_label=year_label,
-        )
-    except Exception as e:
-        jpg_error = str(e)
-
-    if jpg_bytes:
-        st.image(jpg_bytes, caption="Shareable JPG preview", use_column_width=True)
-        st.download_button(
-            "Download shareable JPG",
-            data=jpg_bytes,
-            file_name=f"chatgpt_wrapped_{year_label.replace(' ', '_').lower()}.jpg",
-            mime="image/jpeg",
-        )
-    else:
-        st.info(
-            "Install optional image dependencies (kaleido) to generate a JPG preview." if not jpg_error else f"Could not generate JPG preview: {jpg_error}"
-        )
 
     st.caption("Token counts are derived from the export text using tokenisation. ChatGPT exports do not include official token usage.")
 

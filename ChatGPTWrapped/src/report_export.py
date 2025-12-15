@@ -1,12 +1,10 @@
 from __future__ import annotations
 
-from typing import Dict, Optional
+from typing import Dict
 
 import pandas as pd
 import plotly.express as px
 import plotly.io as pio
-from plotly.subplots import make_subplots
-import plotly.graph_objects as go
 
 from .theme import ACCENT_COLOR, DATA_COLORS, MUTED_TEXT_COLOR, PRIMARY_FONT, SECONDARY_FONT, TEXT_COLOR
 
@@ -102,103 +100,3 @@ def build_wrapped_html(title: str,
 </body>
 </html>
 """
-
-
-def build_wrapped_jpg(title: str,
-                      tagline: str,
-                      emoji: str,
-                      metrics: Dict[str, float],
-                      tokens_cat: pd.DataFrame,
-                      tokens_time: pd.DataFrame,
-                      highlights: Dict[str, object],
-                      year_label: str) -> Optional[bytes]:
-    """Create a colour-rich JPG snapshot of the wrapped results."""
-
-    fig = make_subplots(
-        rows=2,
-        cols=2,
-        specs=[[{"type": "domain"}, {"type": "xy"}], [{"colspan": 2, "type": "xy"}, None]],
-        vertical_spacing=0.16,
-        horizontal_spacing=0.12,
-        subplot_titles=("What you used ChatGPT for", "Tokens over time", "Top categories"),
-    )
-
-    if not tokens_cat.empty:
-        fig.add_trace(
-            go.Pie(
-                labels=tokens_cat["category"],
-                values=tokens_cat["tokens"],
-                hole=0.55,
-                marker=dict(colors=DATA_COLORS),
-                textfont=dict(color=TEXT_COLOR, family=SECONDARY_FONT),
-            ),
-            row=1,
-            col=1,
-        )
-
-    if not tokens_time.empty and "time" in tokens_time.columns:
-        fig.add_trace(
-            go.Scatter(
-                x=tokens_time["time"],
-                y=tokens_time["tokens"],
-                mode="lines",
-                name="Tokens",
-                line=dict(color=DATA_COLORS[0], width=3),
-                fill="tozeroy",
-                fillcolor="rgba(65,138,179,0.18)",
-            ),
-            row=1,
-            col=2,
-        )
-
-    top_cat = tokens_cat.head(6)
-    if not top_cat.empty:
-        fig.add_trace(
-            go.Bar(
-                x=top_cat["tokens"],
-                y=top_cat["category"],
-                orientation="h",
-                marker=dict(color=DATA_COLORS),
-                text=top_cat["tokens"].apply(_fmt_int),
-                textposition="auto",
-                name="Tokens",
-            ),
-            row=2,
-            col=1,
-        )
-
-    title_block = f"{emoji} {title} · ChatGPT Wrapped {year_label}"
-    fig.update_layout(
-        title=dict(text=title_block, x=0.02, font=dict(size=26, family=PRIMARY_FONT, color=TEXT_COLOR)),
-        annotations=[
-            go.layout.Annotation(
-                text=tagline,
-                x=0.02,
-                xref="paper",
-                y=1.08,
-                yref="paper",
-                showarrow=False,
-                font=dict(color=MUTED_TEXT_COLOR, family=SECONDARY_FONT, size=14),
-            ),
-            go.layout.Annotation(
-                text=f"Tokens: {_fmt_int(int(metrics.get('tokens', 0)))} · Messages: {_fmt_int(int(metrics.get('messages', 0)))} · Conversations: {_fmt_int(int(metrics.get('conversations', 0)))}",
-                x=0.02,
-                xref="paper",
-                y=-0.12,
-                yref="paper",
-                showarrow=False,
-                font=dict(color=MUTED_TEXT_COLOR, family=SECONDARY_FONT),
-            ),
-        ],
-        legend=dict(orientation="h", y=-0.1, x=0.4, font=dict(family=SECONDARY_FONT)),
-        margin=dict(l=40, r=30, t=90, b=110),
-        paper_bgcolor="#ffffff",
-        plot_bgcolor="#ffffff",
-        font=dict(family=PRIMARY_FONT, color=TEXT_COLOR),
-        colorway=DATA_COLORS,
-    )
-
-    fig.update_xaxes(showgrid=True, gridcolor="rgba(12,18,32,0.08)")
-    fig.update_yaxes(showgrid=True, gridcolor="rgba(12,18,32,0.08)")
-
-    return pio.to_image(fig, format="jpg", width=1200, height=800, scale=2)
