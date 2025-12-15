@@ -4,7 +4,7 @@ A simple, modern "year-in-review" style dashboard for your ChatGPT conversations
 
 ## What it does
 - Accepts a **ChatGPT data export** `conversations.json` (or the export `.zip`).
-- Builds a "Wrapped" style report: activity, categories, token estimates, highlights, and an archetype title.
+- Builds a "Wrapped" style report: activity, categories, token counts, highlights, and an archetype title.
 - Lets users download:
   - Per-message CSV
   - Per-conversation CSV
@@ -31,15 +31,8 @@ Download your ChatGPT data export from ChatGPT settings and either:
 
 ## Notes on token counts
 ChatGPT exports do **not** include official token counts.
-This app estimates tokens using:
-- `tiktoken` when installed (recommended), otherwise
-- a close heuristic based on text length and code density.
-
-To enable more accurate tokenisation:
-
-```bash
-pip install tiktoken
-```
+This app tokenises text with `tiktoken` (bundled in `requirements.txt`) and falls back to an approximate heuristic only if
+`tiktoken` is unavailable.
 
 ## Project structure
 - `app.py` Streamlit UI

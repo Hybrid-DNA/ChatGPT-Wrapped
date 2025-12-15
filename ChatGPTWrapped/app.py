@@ -62,13 +62,12 @@ def _load_messages_from_upload(uploaded, timezone: str) -> List[ParsedMessage]:
 
 @st.cache_data(show_spinner=False)
 def _build_df(messages: List[ParsedMessage], use_tiktoken: bool) -> pd.DataFrame:
-    counter = None
-    if use_tiktoken:
-        counter = get_token_counter()
+    counter_fn, has_tiktoken = get_token_counter()
+    counter = counter_fn if use_tiktoken and has_tiktoken else estimate_tokens_heuristic
 
     rows: List[Dict] = []
     for m in messages:
-        tok = counter(m.text) if counter else estimate_tokens_heuristic(m.text)
+        tok = counter(m.text)
         rows.append(
             {
                 "conversation_id": m.conversation_id,
@@ -114,6 +113,8 @@ def main() -> None:
     st.title("✨ ChatGPT Wrapped")
     st.caption("Upload your ChatGPT export and get a clean, shareable year-in-review.")
 
+    _, using_tiktoken = get_token_counter()
+
     with st.sidebar:
         st.subheader("Upload")
         uploaded = st.file_uploader("ChatGPT export (.zip) or conversations.json", type=["zip", "json"])
@@ -121,15 +122,10 @@ def main() -> None:
 
         st.divider()
         st.subheader("Token counting")
-        try:
-            import tiktoken  # noqa: F401
-            has_tiktoken = True
-        except Exception:
-            has_tiktoken = False
-
-        use_tiktoken = st.toggle("Use tiktoken (more accurate)", value=has_tiktoken, disabled=not has_tiktoken)
-        if not has_tiktoken:
-            st.caption("Install `tiktoken` for more accurate tokenisation. This app will use a close heuristic instead.")
+        if using_tiktoken:
+            st.caption("Using `tiktoken` for accurate tokenisation.")
+        else:
+            st.warning("`tiktoken` is not installed. Falling back to an approximate heuristic.")
 
         st.divider()
         st.subheader("Filters")
@@ -149,7 +145,7 @@ def main() -> None:
         st.error(f"Could not parse the uploaded file: {e}")
         st.stop()
 
-    df = _build_df(messages, use_tiktoken=use_tiktoken)
+    df = _build_df(messages, use_tiktoken=using_tiktoken)
     if df.empty:
         st.warning("No messages found in this export (or messages had no text).")
         st.stop()
@@ -184,9 +180,11 @@ def main() -> None:
         pills([flair.get("intensity",""), flair.get("cadence",""), flair.get("style","")])
 
     with right:
+        token_label = "Tokens (tiktoken)" if using_tiktoken else "Tokens (estimated)"
+
         c1, c2, c3 = st.columns(3, gap="small")
         with c1:
-            metric_card("Estimated tokens", _format_int(int(metrics.get("tokens", 0))), "Estimated from message text.")
+            metric_card(token_label, _format_int(int(metrics.get("tokens", 0))), "Calculated from message text.")
         with c2:
             metric_card("Messages", _format_int(int(metrics.get("messages", 0))))
         with c3:
@@ -263,7 +261,7 @@ def main() -> None:
                 st.plotly_chart(fig_hm, use_container_width=True)
 
     with tab_convos:
-        st.subheader("Top conversations (by token estimate)")
+        st.subheader("Top conversations (by token count)")
         if conv_df.empty:
             st.caption("No conversations available under the current filters.")
         else:
@@ -346,7 +344,7 @@ def main() -> None:
             help="A single HTML file you can open in a browser and share.",
         )
 
-        st.caption("Token counts are estimated from the export text. ChatGPT exports do not include official token usage.")
+        st.caption("Token counts are derived from the export text using tokenisation. ChatGPT exports do not include official token usage.")
 
 
 if __name__ == "__main__":
