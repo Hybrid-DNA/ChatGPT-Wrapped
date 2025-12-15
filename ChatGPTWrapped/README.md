@@ -31,8 +31,7 @@ Download your ChatGPT data export from ChatGPT settings and either:
 
 ## Notes on token counts
 ChatGPT exports do **not** include official token counts.
-This app tokenises text with `tiktoken` (bundled in `requirements.txt`) and falls back to an approximate heuristic only if
-`tiktoken` is unavailable.
+This app uses a lightweight heuristic to estimate tokens directly from the message text.
 
 ## Project structure
 - `app.py` Streamlit UI
