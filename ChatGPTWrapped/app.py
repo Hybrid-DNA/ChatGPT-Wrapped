@@ -371,13 +371,13 @@ def main() -> None:
         <div class="hero">
             <div class="hero__orbit"></div>
             <div class="hero__content">
-                <p class="eyebrow">Year-in-review, reimagined</p>
-                <h1>✨ ChatGPT Wrapped</h1>
-                <p class="lede">Upload your ChatGPT export to unlock cinematic visuals, archetypes, and share-ready insights.</p>
+                <p class="eyebrow">Clean, data-forward summary</p>
+                <h1>🧪 ChatGPT Wrapped</h1>
+                <p class="lede">Upload your ChatGPT export to explore precise, spacious visuals, archetypes, and ready-to-share insights.</p>
                 <div class="hero__pills">
-                    <span class="pill pill-strong">Guided storytelling</span>
-                    <span class="pill pill-strong">Polished charts</span>
-                    <span class="pill pill-strong">One-click downloads</span>
+                    <span class="pill pill-strong">Token timelines</span>
+                    <span class="pill pill-strong">Category focus</span>
+                    <span class="pill pill-strong">Downloadable evidence</span>
                 </div>
             </div>
             <div class="hero__glow"></div>

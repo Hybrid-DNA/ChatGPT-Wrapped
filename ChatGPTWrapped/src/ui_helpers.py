@@ -18,133 +18,114 @@ def inject_css() -> None:
     st.markdown(
         f"""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@300;400;600;700&family=Inter:wght@400;500;600&display=swap');
 
 :root {{
   --bg: {BACKGROUND_COLOR};
   --text: {TEXT_COLOR};
   --muted: {MUTED_TEXT_COLOR};
   --accent: {ACCENT_COLOR};
-  --accent-amber: #FEC306;
-  --accent-green: #A6B727;
-  --accent-orange: #DF5327;
+  --surface: #ffffff;
+  --border: #e5e7eb;
+  --accent-soft: color-mix(in srgb, var(--accent) 14%, white);
   --font-primary: {PRIMARY_FONT};
   --font-secondary: {SECONDARY_FONT};
   color-scheme: light;
 }}
 html, body {{
-  background:
-    radial-gradient(circle at 12% 16%, color-mix(in srgb, var(--accent) 12%, transparent) 0, transparent 26%),
-    linear-gradient(90deg, color-mix(in srgb, var(--accent) 6%, transparent) 1px, transparent 1px),
-    linear-gradient(180deg, color-mix(in srgb, var(--accent) 4%, transparent) 1px, transparent 1px),
-    var(--bg);
-  background-size: 220px 220px, 120px 120px, 120px 120px, auto;
+  background: var(--bg);
   color: var(--text);
   font-family: var(--font-primary);
 }}
-.block-container {{ padding-top: 1.1rem; padding-bottom: 2.2rem; max-width: 1200px; }}
+.block-container {{ padding-top: 1.4rem; padding-bottom: 2.4rem; max-width: 1200px; }}
 h1, h2, h3 {{ letter-spacing: -0.01em; color: var(--text); font-weight: 700; }}
-p, .stMarkdown {{ color: var(--text); font-family: var(--font-primary); }}
+p, .stMarkdown {{ color: var(--text); font-family: var(--font-primary); line-height: 1.55; }}
 .stCaption, .st-emotion-cache-1kyxreq, .st-emotion-cache-1n76uvr {{ font-family: var(--font-secondary); color: var(--muted); }}
 
 /* Sidebar */
 .stSidebar {{
-  background: linear-gradient(180deg, #f1f5fa 0%, #e5edf5 100%);
+  background: var(--surface);
   color: var(--text);
-  border-right: 1px solid color-mix(in srgb, var(--text) 10%, transparent);
+  border-right: 1px solid var(--border);
 }}
 .stSidebar .stButton>button, .stSidebar .stDownloadButton>button {{
-  border-radius: 12px;
-  border: 1px solid color-mix(in srgb, var(--text) 12%, transparent);
-  background: white;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
   color: var(--text);
-  box-shadow: 0 6px 16px color-mix(in srgb, var(--text) 8%, transparent);
+  box-shadow: none;
 }}
 
 /* Hero */
 .hero {{
   position: relative;
   overflow: hidden;
-  padding: 22px 24px 24px;
-  border-radius: 18px;
-  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 12%, white) 0%, white 85%);
+  padding: 20px 22px 22px;
+  border-radius: 16px;
+  background: var(--surface);
   color: var(--text);
-  box-shadow: 0 18px 36px rgba(18, 53, 82, 0.12);
-  border: 1px solid color-mix(in srgb, var(--text) 10%, transparent);
-  }}
+  box-shadow: 0 16px 38px rgba(17, 24, 39, 0.08);
+  border: 1px solid var(--border);
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.5rem;
+}}
 .hero__orbit {{
   position: absolute;
-  inset: -10% 20% auto -10%;
-  height: 220px;
-  background: radial-gradient(circle, color-mix(in srgb, var(--accent) 14%, transparent) 0%, transparent 55%);
-  filter: blur(20px);
+  inset: 4% auto auto 72%;
+  width: 120px;
+  height: 120px;
+  background: radial-gradient(circle, var(--accent-soft) 0%, transparent 70%);
+  filter: blur(6px);
+  opacity: 0.75;
 }}
-.hero__content {{ position: relative; z-index: 1; max-width: 720px; }}
-.hero h1 {{ margin: 0 0 8px; font-size: 2.25rem; }}
-.hero .lede {{ color: color-mix(in srgb, var(--text) 70%, var(--muted)); max-width: 640px; }}
-.hero__glow {{
-  position: absolute;
-  right: -8%;
-  top: -28%;
-  width: 220px;
-  height: 220px;
-  background: radial-gradient(circle, color-mix(in srgb, var(--accent-orange) 22%, transparent) 0%, transparent 65%);
-  filter: blur(16px);
-  opacity: 0.65;
-}}
-.eyebrow {{ text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.74rem; color: var(--muted); margin-bottom: 6px; font-family: var(--font-secondary); }}
-.muted {{ color: color-mix(in srgb, var(--text) 55%, transparent); font-family: var(--font-secondary); }}
+.hero__content {{ position: relative; z-index: 1; max-width: 840px; }}
+.hero h1 {{ margin: 0 0 8px; font-size: 2.15rem; }}
+.hero .lede {{ color: var(--muted); max-width: 640px; }}
+.hero__glow {{ display: none; }}
+.eyebrow {{ text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.76rem; color: var(--muted); margin-bottom: 6px; font-family: var(--font-secondary); }}
+.muted {{ color: var(--muted); font-family: var(--font-secondary); }}
 .hero__pills {{ margin-top: 10px; display: flex; gap: 0.5rem; flex-wrap: wrap; }}
 
 /* Cards */
 .card {{
-  border: 1px solid color-mix(in srgb, var(--text) 10%, transparent);
-  border-radius: 16px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
   padding: 14px 14px 12px;
-  background: color-mix(in srgb, white 90%, color-mix(in srgb, var(--accent) 6%, transparent));
-  box-shadow: 0 12px 32px rgba(18, 53, 82, 0.08);
-  position: relative;
-  overflow: hidden;
-  }}
-.card:before {{
-  content: "";
-  position: absolute;
-  inset: -40% 28% 52% -38%;
-  background: radial-gradient(circle, color-mix(in srgb, var(--accent-green) 22%, transparent) 0%, transparent 55%);
-  opacity: 0.4;
+  background: var(--surface);
+  box-shadow: 0 12px 30px rgba(17, 24, 39, 0.06);
 }}
-.card .k {{ font-size: 0.82rem; color: var(--muted); font-family: var(--font-secondary); letter-spacing: 0.02em; text-transform: uppercase; }}
-.card .v {{ font-size: 1.45rem; margin-top: 0.3rem; color: var(--text); font-weight: 700; }}
+.card .k {{ font-size: 0.82rem; color: var(--muted); font-family: var(--font-secondary); letter-spacing: 0.04em; text-transform: uppercase; }}
+.card .v {{ font-size: 1.42rem; margin-top: 0.3rem; color: var(--text); font-weight: 700; }}
 
 /* Pills */
 .pill {{
   display: inline-block;
-  border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+  border: 1px solid var(--border);
   border-radius: 999px;
-  padding: 0.25rem 0.75rem;
-  font-size: 0.85rem;
+  padding: 0.3rem 0.8rem;
+  font-size: 0.88rem;
   color: var(--muted);
-  background: color-mix(in srgb, var(--accent) 6%, white);
+  background: #f5f7fb;
   margin-right: 0.35rem;
   margin-bottom: 0.35rem;
   font-family: var(--font-secondary);
-  backdrop-filter: blur(3px);
-  }}
-.pill-strong {{ color: var(--text); background: white; border-color: color-mix(in srgb, var(--accent) 30%, white); font-weight: 600; }}
-.hr {{ height:1px; background: color-mix(in srgb, var(--text) 9%, transparent); margin: 0.9rem 0; }}
+}}
+.pill-strong {{ color: var(--text); background: color-mix(in srgb, var(--accent) 12%, white); border-color: var(--border); font-weight: 600; }}
+.hr {{ height:1px; background: var(--border); margin: 0.9rem 0; }}
 
 /* Tabs & data */
 .stTabs [data-baseweb="tab"] {{
-  background: color-mix(in srgb, white 96%, transparent);
+  background: #f5f7fb;
   border-radius: 12px 12px 0 0;
   margin-right: 0.25rem;
-  padding: 0.75rem 1rem;
+  padding: 0.72rem 0.95rem;
   font-weight: 600;
-  border: 1px solid color-mix(in srgb, var(--text) 6%, transparent);
+  border: 1px solid var(--border);
   border-bottom: none;
 }}
 .stTabs [data-baseweb="tab"]:hover {{
-  background: color-mix(in srgb, var(--accent) 12%, white);
+  background: color-mix(in srgb, var(--accent) 10%, white);
 }}
 .stTabs [data-baseweb="tab"]:active {{ transform: translateY(1px); }}
 .stTabs [aria-selected="true"] {{
@@ -153,11 +134,11 @@ p, .stMarkdown {{ color: var(--text); font-family: var(--font-primary); }}
   background: color-mix(in srgb, var(--accent) 12%, white);
 }}
 .stDataFrame {{
-  background: white;
-  border-radius: 18px;
-  border: 1px solid color-mix(in srgb, var(--text) 10%, transparent);
-  box-shadow: 0 10px 24px rgba(18, 53, 82, 0.08);
-  padding: 0.35rem;
+  background: var(--surface);
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  box-shadow: 0 8px 22px rgba(17, 24, 39, 0.06);
+  padding: 0.25rem;
 }}
 
 /* Empty state */
@@ -166,39 +147,39 @@ p, .stMarkdown {{ color: var(--text); font-family: var(--font-primary); }}
   gap: 14px;
   align-items: center;
   background: color-mix(in srgb, var(--accent) 8%, white);
-  border: 1px dashed color-mix(in srgb, var(--text) 18%, transparent);
+  border: 1px dashed var(--border);
   padding: 16px 18px;
   border-radius: 14px;
-  box-shadow: 0 8px 18px rgba(18, 53, 82, 0.05);
+  box-shadow: none;
 }}
 .empty-state__icon {{
   width: 48px;
   height: 48px;
   display: grid;
   place-items: center;
-  background: white;
+  background: var(--surface);
   border-radius: 12px;
   font-size: 1.4rem;
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 16%, transparent);
+  border: 1px solid var(--border);
 }}
 
 /* Buttons */
 .stDownloadButton>button, .stButton>button {{
-  background: linear-gradient(120deg, color-mix(in srgb, var(--accent) 85%, white) 0%, color-mix(in srgb, var(--accent-amber) 55%, white) 100%);
-  color: #0b243b;
-  border-radius: 12px;
-  border: 1px solid color-mix(in srgb, var(--text) 8%, transparent);
+  background: var(--accent);
+  color: #ffffff;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--border));
   padding: 0.55rem 1rem;
   font-weight: 650;
-  box-shadow: 0 12px 26px rgba(18, 53, 82, 0.16);
+  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.18);
 }}
-.stDownloadButton>button:hover, .stButton>button:hover {{ filter: brightness(1.03); }}
+.stDownloadButton>button:hover, .stButton>button:hover {{ filter: brightness(1.05); }}
 
 /* Streamlit tweaks */
 .st-emotion-cache-1u0u0jh p {{ color: var(--muted); }}
-hr {{ border-color: color-mix(in srgb, var(--text) 10%, transparent); }}
+hr {{ border-color: var(--border); }}
 </style>
-""",
+        """,
         unsafe_allow_html=True,
     )
 
