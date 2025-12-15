@@ -75,6 +75,9 @@ def build_wrapped_html(title: str,
     .section h2 {{ font-size: 16px; margin: 0 0 10px; letter-spacing: -0.01em; }}
     .small {{ color: var(--muted); font-size: 12px; margin-top: 6px; font-family:{SECONDARY_FONT}; }}
     .pill {{ display:inline-block; font-size: 12px; padding: 6px 10px; border:1px solid color-mix(in srgb, {ACCENT_COLOR} 35%, transparent); border-radius: 999px; background:color-mix(in srgb, {ACCENT_COLOR} 8%, #fff); margin-right: 8px; font-family:{SECONDARY_FONT}; }}
+    .hybrid-tag {{ display:inline-flex; gap:6px; align-items:center; padding:6px 10px; border-radius:999px; background:color-mix(in srgb, {ACCENT_COLOR} 12%, #fff); border:1px solid color-mix(in srgb, {ACCENT_COLOR} 22%, var(--border)); font-family:{SECONDARY_FONT}; font-size:13px; color:var(--text); text-decoration:none; box-shadow:0 8px 18px rgba(56, 125, 165, 0.14); }}
+    .hybrid-tag a {{ color: inherit; text-decoration: none; font-weight: 650; }}
+    .hybrid-tag a:hover {{ text-decoration: underline; }}
     @media (max-width: 780px) {{ .grid {{ grid-template-columns: 1fr; }} }}
     """
 
@@ -101,6 +104,9 @@ def build_wrapped_html(title: str,
         <span class="pill">Peak day: {peak_day} ({_fmt_int(peak_day_tokens)} tokens)</span>
         <span class="pill">Busiest hour: {busiest_hour}:00</span>
         <span class="pill">Assistant share: {metrics.get("assistant_token_share",0)*100:.1f}%</span>
+      </div>
+      <div style="margin-top:10px;">
+        <span class="hybrid-tag">Created by <a href="mailto:justin@hybriddna.com.au">Hybrid DNA</a></span>
       </div>
     </div>
 

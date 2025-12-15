@@ -28,7 +28,7 @@ from src.categorise import categorise
 from src.parse_export import ParsedMessage, parse_conversations
 from src.report_export import build_wrapped_html
 from src.tokens import estimate_tokens_heuristic, get_token_counter
-from src.ui_helpers import inject_css, metric_card, pills
+from src.ui_helpers import hybrid_dna_tag, inject_css, metric_card, pills
 from src.theme import HEATMAP_BLUE_SCALE, apply_plotly_theme, DATA_COLORS
 
 APP_TITLE = "ChatGPT Wrapped"
@@ -128,6 +128,8 @@ def _render_upload_sidebar() -> tuple[Optional[st.runtime.uploaded_file_manager.
         st.subheader("Upload")
         uploaded = st.file_uploader("ChatGPT export (.zip) or conversations.json", type=["zip", "json"], key="export_upload")
         timezone = st.text_input("Timezone", value=DEFAULT_TZ, help="Used for grouping by day/hour.", key="timezone")
+        st.markdown(" ")
+        hybrid_dna_tag(muted=True)
 
     _, has_tiktoken, _ = get_token_counter()
     use_tiktoken = has_tiktoken
@@ -402,6 +404,7 @@ def _render_downloads(year_choice, timezone, archetype, metrics, cat_df, ts_df, 
 
         st.markdown(" ")
         st.caption("Token counts are derived from the export text using tokenisation. ChatGPT exports do not include official token usage.")
+        hybrid_dna_tag(muted=True)
 
     st.markdown(" ")
 
@@ -430,6 +433,7 @@ def main() -> None:
         """,
         unsafe_allow_html=True,
     )
+    hybrid_dna_tag()
 
     uploaded, timezone, use_tiktoken = _render_upload_sidebar()
 
