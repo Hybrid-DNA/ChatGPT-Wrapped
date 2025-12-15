@@ -14,7 +14,7 @@ class Archetype:
     traits: Tuple[str, str, str]
 
 
-ARCHETYPES = {
+PRIMARY_ARCHETYPES = {
     "Data engineering and SQL": Archetype(
         title="Technician",
         tagline="You chase correctness, performance, and clean data like it is a sport.",
@@ -78,11 +78,117 @@ ARCHETYPES = {
 }
 
 
+SECONDARY_ARCHETYPES: Dict[Tuple[str, str], Archetype] = {
+    ("AI and LLMs", "App development and code"): Archetype(
+        title="Applied Futurist",
+        tagline="You pair models with shipping discipline—ideas leave the lab fast.",
+        emoji="🚀",
+        traits=("Prototype-hungry", "Tool-builder", "Impact-driven"),
+    ),
+    ("AI and LLMs", "Writing, marketing and comms"): Archetype(
+        title="Narrative Synthesist",
+        tagline="You turn model outputs into stories that persuade and teach.",
+        emoji="🪄",
+        traits=("Translational", "Audience-savvy", "Pattern-spotter"),
+    ),
+    ("AI and LLMs", "Business strategy, finance and deals"): Archetype(
+        title="Venture Scout",
+        tagline="You scan emerging tech for leverage, moats, and upside.",
+        emoji="🏔️",
+        traits=("Opportunity-first", "Model-aware", "Market translator"),
+    ),
+    ("AI and LLMs", "Data engineering and SQL"): Archetype(
+        title="Model Wrangler",
+        tagline="You connect clean data to hungry models and keep the pipes flowing.",
+        emoji="🧰",
+        traits=("Structured", "Integration-minded", "Reliability-focused"),
+    ),
+    ("App development and code", "Troubleshooting and tooling"): Archetype(
+        title="Systems First Responder",
+        tagline="You debug, patch, and ship—often in the same afternoon.",
+        emoji="🩹",
+        traits=("Resilient", "Hands-on", "Latency-sensitive"),
+    ),
+    ("App development and code", "Security, privacy and compliance"): Archetype(
+        title="Secure Builder",
+        tagline="You ship features with guardrails baked in from day one.",
+        emoji="🧱",
+        traits=("Threat-aware", "Practical", "Defense-in-depth"),
+    ),
+    ("Data engineering and SQL", "Analytics and reporting"): Archetype(
+        title="Pipeline Navigator",
+        tagline="You architect flows that make analysis trustworthy and fast.",
+        emoji="🛰️",
+        traits=("End-to-end thinker", "Schema-loyal", "Latency-aware"),
+    ),
+    ("Data engineering and SQL", "Data quality and parsing"): Archetype(
+        title="Data Conservator",
+        tagline="You obsess over lineage, versioning, and long-lived truth.",
+        emoji="🏺",
+        traits=("Steady", "Documentation-forward", "Future-proof"),
+    ),
+    ("Analytics and reporting", "Writing, marketing and comms"): Archetype(
+        title="Insight Narrator",
+        tagline="You translate dashboards into decisions with crisp prose.",
+        emoji="🗺️",
+        traits=("Plain-language", "Audience-aware", "Outcome-anchored"),
+    ),
+    ("Business strategy, finance and deals", "Analytics and reporting"): Archetype(
+        title="Board Whisperer",
+        tagline="You distill numbers into moves, risks, and next bets.",
+        emoji="🏛️",
+        traits=("Executive-ready", "Synthesis-heavy", "Scenario-minded"),
+    ),
+    ("Business strategy, finance and deals", "AI and LLMs"): Archetype(
+        title="Automation Strategist",
+        tagline="You map AI experiments to revenue, margin, and durable advantage.",
+        emoji="🧮",
+        traits=("Commercial", "Experiment-friendly", "Leveraged"),
+    ),
+    ("Writing, marketing and comms", "Personal and lifestyle"): Archetype(
+        title="Voice Crafter",
+        tagline="You weave work, hobbies, and story-telling into one fluent feed.",
+        emoji="🎙️",
+        traits=("Expressive", "Empathetic", "Curator"),
+    ),
+    ("Security, privacy and compliance", "AI and LLMs"): Archetype(
+        title="Safety Pilot",
+        tagline="You champion responsible adoption while keeping experimentation alive.",
+        emoji="🛰️",
+        traits=("Governance-minded", "Pragmatic", "Calm"),
+    ),
+    ("Security, privacy and compliance", "Data quality and parsing"): Archetype(
+        title="Governance Steward",
+        tagline="You ensure records, access, and policy all stay in sync.",
+        emoji="📜",
+        traits=("Custodial", "Checklist-loyal", "Risk-aware"),
+    ),
+    ("Troubleshooting and tooling", "Data quality and parsing"): Archetype(
+        title="Reliability Custodian",
+        tagline="You hunt flaky links and tidy logs until everything hums.",
+        emoji="🧹",
+        traits=("Diagnostic", "Patient", "Observability-driven"),
+    ),
+}
+
+
 def assign_archetype(tokens_by_category: pd.DataFrame) -> Archetype:
     if tokens_by_category.empty:
-        return ARCHETYPES["Personal and lifestyle"]
-    top_cat = str(tokens_by_category.iloc[0]["category"])
-    return ARCHETYPES.get(top_cat, ARCHETYPES["Personal and lifestyle"])
+        return PRIMARY_ARCHETYPES["Personal and lifestyle"]
+
+    top_row = tokens_by_category.iloc[0]
+    top_cat = str(top_row["category"])
+
+    second_cat = None
+    if len(tokens_by_category) > 1:
+        second_cat = str(tokens_by_category.iloc[1]["category"])
+
+    if top_cat and second_cat:
+        combo_key = (top_cat, second_cat)
+        if combo_key in SECONDARY_ARCHETYPES:
+            return SECONDARY_ARCHETYPES[combo_key]
+
+    return PRIMARY_ARCHETYPES.get(top_cat, PRIMARY_ARCHETYPES["Personal and lifestyle"])
 
 
 def add_flair(metrics: Dict[str, float]) -> Dict[str, str]:
