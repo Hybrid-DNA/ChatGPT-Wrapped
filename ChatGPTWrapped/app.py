@@ -155,210 +155,255 @@ def _render_filter_sidebar(years: List[str]) -> tuple[str, bool, Optional[date],
 
 
 def _render_archetype_summary(archetype, flair, metrics, token_label: str) -> None:
-    left, right = st.columns([1.25, 1.0], gap="large")
-    with left:
-        st.markdown(f"## {archetype.emoji} **{archetype.title}**")
-        st.markdown(archetype.tagline)
-        pills(list(archetype.traits))
-        st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
-        pills([flair.get("intensity", ""), flair.get("cadence", ""), flair.get("style", "")])
+    container = st.container()
+    with container:
+        left, right = st.columns([1.25, 1.0], gap="large")
+        with left:
+            st.markdown(f"## {archetype.emoji} **{archetype.title}**")
+            st.markdown(" ")
+            st.markdown(archetype.tagline)
+            st.markdown(" ")
+            pills(list(archetype.traits))
+            st.markdown(" ")
+            st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
+            st.markdown(" ")
+            pills([flair.get("intensity", ""), flair.get("cadence", ""), flair.get("style", "")])
 
-    with right:
-        c1, c2, c3 = st.columns(3, gap="small")
-        with c1:
-            metric_card(token_label, _format_int(int(metrics.get("tokens", 0))), "Calculated from message text.")
-        with c2:
-            metric_card("Messages", _format_int(int(metrics.get("messages", 0))))
-        with c3:
-            metric_card("Conversations", _format_int(int(metrics.get("conversations", 0))))
+        with right:
+            c1, c2, c3 = st.columns(3, gap="small")
+            with c1:
+                metric_card(token_label, _format_int(int(metrics.get("tokens", 0))), "Calculated from message text.")
+            with c2:
+                metric_card("Messages", _format_int(int(metrics.get("messages", 0))))
+            with c3:
+                metric_card("Conversations", _format_int(int(metrics.get("conversations", 0))))
 
-        c4, c5, c6 = st.columns(3, gap="small")
-        with c4:
-            metric_card("You (tokens)", _format_int(int(metrics.get("user_tokens", 0))))
-        with c5:
-            metric_card("Assistant (tokens)", _format_int(int(metrics.get("assistant_tokens", 0))))
-        with c6:
-            metric_card("Assistant share", f"{metrics.get('assistant_token_share', 0) * 100:.1f}%")
+            st.markdown(" ")
 
-        c7, _, _ = st.columns(3, gap="small")
-        with c7:
-            metric_card("Active time", _format_duration(float(metrics.get("active_minutes", 0.0))))
+            c4, c5, c6 = st.columns(3, gap="small")
+            with c4:
+                metric_card("You (tokens)", _format_int(int(metrics.get("user_tokens", 0))))
+            with c5:
+                metric_card("Assistant (tokens)", _format_int(int(metrics.get("assistant_tokens", 0))))
+            with c6:
+                metric_card("Assistant share", f"{metrics.get('assistant_token_share', 0) * 100:.1f}%")
+
+            st.markdown(" ")
+
+            c7, _, _ = st.columns(3, gap="small")
+            with c7:
+                metric_card("Active time", _format_duration(float(metrics.get("active_minutes", 0.0))))
+
+    st.markdown(" ")
 
 
 def _render_wrapped_tab(cat_df, hi, kw, time_cat_df):
-    a, b = st.columns([1.05, 0.95], gap="large")
-    with a:
-        st.subheader("What you used ChatGPT for")
-        fig = px.pie(cat_df, values="tokens", names="category", hole=0.55, color_discrete_sequence=DATA_COLORS)
-        fig.update_layout(margin=dict(l=10, r=10, t=10, b=10), height=420, legend_title_text="")
-        st.plotly_chart(fig, use_container_width=True)
+    container = st.container()
+    with container:
+        a, b = st.columns([1.05, 0.95], gap="large")
+        with a:
+            st.subheader("What you used ChatGPT for")
+            st.markdown(" ")
+            fig = px.pie(cat_df, values="tokens", names="category", hole=0.55, color_discrete_sequence=DATA_COLORS)
+            fig.update_layout(margin=dict(l=10, r=10, t=10, b=10), height=420, legend_title_text="")
+            st.plotly_chart(fig, use_container_width=True)
 
-        st.markdown("")
-        st.subheader("Where your time went")
-        if time_cat_df.empty:
-            st.caption("Not enough data to estimate time by category.")
-        else:
-            fig_time = px.pie(time_cat_df, values="duration_minutes", names="category", hole=0.55, color_discrete_sequence=DATA_COLORS)
-            fig_time.update_layout(margin=dict(l=10, r=10, t=10, b=10), height=420, legend_title_text="")
-            st.plotly_chart(fig_time, use_container_width=True)
+            st.markdown(" ")
+            st.subheader("Where your time went")
+            st.markdown(" ")
+            if time_cat_df.empty:
+                st.caption("Not enough data to estimate time by category.")
+            else:
+                fig_time = px.pie(time_cat_df, values="duration_minutes", names="category", hole=0.55, color_discrete_sequence=DATA_COLORS)
+                fig_time.update_layout(margin=dict(l=10, r=10, t=10, b=10), height=420, legend_title_text="")
+                st.plotly_chart(fig_time, use_container_width=True)
 
-    with b:
-        st.subheader("Your highlights")
-        items: List[str] = []
-        if hi.get("peak_day"):
-            items.append(f"Peak day: {hi['peak_day']} ({_format_int(int(hi.get('peak_day_tokens', 0)))} tokens)")
-        if hi.get("busiest_hour") is not None:
-            items.append(f"Busiest hour: {int(hi['busiest_hour'])}:00")
-        top_conv = hi.get("top_conversation") or {}
-        if top_conv:
-            items.append(f"Biggest thread: {top_conv.get('title')} ({_format_int(int(top_conv.get('tokens', 0)))} tokens)")
-        longest = hi.get("longest_assistant") or {}
-        if longest:
-            items.append(f"Longest assistant reply: {_format_int(int(longest.get('tokens', 0)))} tokens")
+        with b:
+            st.subheader("Your highlights")
+            st.markdown(" ")
+            items: List[str] = []
+            if hi.get("peak_day"):
+                items.append(f"Peak day: {hi['peak_day']} ({_format_int(int(hi.get('peak_day_tokens', 0)))} tokens)")
+            if hi.get("busiest_hour") is not None:
+                items.append(f"Busiest hour: {int(hi['busiest_hour'])}:00")
+            top_conv = hi.get("top_conversation") or {}
+            if top_conv:
+                items.append(f"Biggest thread: {top_conv.get('title')} ({_format_int(int(top_conv.get('tokens', 0)))} tokens)")
+            longest = hi.get("longest_assistant") or {}
+            if longest:
+                items.append(f"Longest assistant reply: {_format_int(int(longest.get('tokens', 0)))} tokens")
 
-        for s in items:
-            st.markdown(f"- {s}")
+            for s in items:
+                st.markdown(f"- {s}")
 
-        st.markdown("")
-        st.subheader("Top keywords")
-        if kw.empty:
-            st.caption("Not enough text to extract keywords.")
-        else:
-            st.dataframe(kw, use_container_width=True, height=330)
+            st.markdown(" ")
+            st.subheader("Top keywords")
+            st.markdown(" ")
+            if kw.empty:
+                st.caption("Not enough text to extract keywords.")
+            else:
+                st.dataframe(kw, use_container_width=True, height=330)
+
+    st.markdown(" ")
 
 
 def _render_deep_dive_tab(ts_df, time_ts_df, by_cat_role, hm):
-    st.subheader("Activity over time")
-    if not ts_df.empty:
-        fig_ts = px.area(ts_df, x="time", y="tokens", color="role", color_discrete_sequence=DATA_COLORS)
-        fig_ts.update_layout(margin=dict(l=10, r=10, t=10, b=10), height=360, legend_title_text="")
-        st.plotly_chart(fig_ts, use_container_width=True)
-    else:
-        st.caption("Not enough timestamped data to build a timeline.")
+    container = st.container()
+    with container:
+        st.subheader("Activity over time")
+        st.markdown(" ")
+        if not ts_df.empty:
+            fig_ts = px.area(ts_df, x="time", y="tokens", color="role", color_discrete_sequence=DATA_COLORS)
+            fig_ts.update_layout(margin=dict(l=10, r=10, t=10, b=10), height=360, legend_title_text="")
+            st.plotly_chart(fig_ts, use_container_width=True)
+        else:
+            st.caption("Not enough timestamped data to build a timeline.")
 
-    st.markdown("")
-    st.subheader("Time spent over time")
-    if not time_ts_df.empty:
-        fig_time_ts = px.area(time_ts_df, x="time", y="duration_minutes", color_discrete_sequence=DATA_COLORS)
-        fig_time_ts.update_layout(margin=dict(l=10, r=10, t=10, b=10), height=320, showlegend=False)
-        fig_time_ts.update_yaxes(title_text="Minutes")
-        st.plotly_chart(fig_time_ts, use_container_width=True)
-    else:
-        st.caption("Not enough timestamped data to estimate time spent.")
+        st.markdown(" ")
+        st.subheader("Time spent over time")
+        st.markdown(" ")
+        if not time_ts_df.empty:
+            fig_time_ts = px.area(time_ts_df, x="time", y="duration_minutes", color_discrete_sequence=DATA_COLORS)
+            fig_time_ts.update_layout(margin=dict(l=10, r=10, t=10, b=10), height=320, showlegend=False)
+            fig_time_ts.update_yaxes(title_text="Minutes")
+            st.plotly_chart(fig_time_ts, use_container_width=True)
+        else:
+            st.caption("Not enough timestamped data to estimate time spent.")
 
-    st.markdown("")
-    c1, c2 = st.columns([1.0, 1.0], gap="large")
-    with c1:
-        st.subheader("Tokens by category and role")
-        if not by_cat_role.empty:
-            fig_bar = px.bar(by_cat_role, x="tokens", y="category", color="role", orientation="h", color_discrete_sequence=DATA_COLORS)
-            fig_bar.update_layout(margin=dict(l=10, r=10, t=10, b=10), height=420, legend_title_text="")
-            st.plotly_chart(fig_bar, use_container_width=True)
+        st.markdown(" ")
+        c1, c2 = st.columns([1.0, 1.0], gap="large")
+        with c1:
+            st.subheader("Tokens by category and role")
+            st.markdown(" ")
+            if not by_cat_role.empty:
+                fig_bar = px.bar(by_cat_role, x="tokens", y="category", color="role", orientation="h", color_discrete_sequence=DATA_COLORS)
+                fig_bar.update_layout(margin=dict(l=10, r=10, t=10, b=10), height=420, legend_title_text="")
+                st.plotly_chart(fig_bar, use_container_width=True)
 
-    with c2:
-        st.subheader("When you use ChatGPT")
-        if not hm.empty:
-            hm2 = hm.copy()
-            hm2.index.name = "Day"
-            hm2.columns = [str(int(c)) for c in hm2.columns]
-            fig_hm = px.imshow(hm2, aspect="auto", color_continuous_scale=HEATMAP_BLUE_SCALE)
-            fig_hm.update_layout(margin=dict(l=10, r=10, t=10, b=10), height=420, coloraxis_showscale=False)
-            st.plotly_chart(fig_hm, use_container_width=True)
+        with c2:
+            st.subheader("When you use ChatGPT")
+            st.markdown(" ")
+            if not hm.empty:
+                hm2 = hm.copy()
+                hm2.index.name = "Day"
+                hm2.columns = [str(int(c)) for c in hm2.columns]
+                fig_hm = px.imshow(hm2, aspect="auto", color_continuous_scale=HEATMAP_BLUE_SCALE)
+                fig_hm.update_layout(margin=dict(l=10, r=10, t=10, b=10), height=420, coloraxis_showscale=False)
+                st.plotly_chart(fig_hm, use_container_width=True)
+
+    st.markdown(" ")
 
 
 def _render_conversation_tab(conv_df):
-    st.subheader("Top conversations (by token count)")
-    if conv_df.empty:
-        st.caption("No conversations available under the current filters.")
-    else:
-        show = conv_df.head(50).copy()
-        show["first_at"] = show["first_at"].dt.strftime("%Y-%m-%d")
-        show["assistant_share"] = (show["assistant_share"] * 100).round(1)
-        show = show.rename(
-            columns={
-                "conversation_title": "Title",
-                "first_at": "First message",
-                "messages": "Messages",
-                "tokens": "Tokens",
-                "assistant_share": "Assistant share (%)",
-            }
-        )
-        st.dataframe(
-            show[["Title", "First message", "Messages", "Tokens", "Assistant share (%)"]],
-            use_container_width=True,
-            height=520,
-        )
+    container = st.container()
+    with container:
+        st.subheader("Top conversations (by token count)")
+        st.markdown(" ")
+        if conv_df.empty:
+            st.caption("No conversations available under the current filters.")
+        else:
+            show = conv_df.head(50).copy()
+            show["first_at"] = show["first_at"].dt.strftime("%Y-%m-%d")
+            show["assistant_share"] = (show["assistant_share"] * 100).round(1)
+            show = show.rename(
+                columns={
+                    "conversation_title": "Title",
+                    "first_at": "First message",
+                    "messages": "Messages",
+                    "tokens": "Tokens",
+                    "assistant_share": "Assistant share (%)",
+                }
+            )
+            st.dataframe(
+                show[["Title", "First message", "Messages", "Tokens", "Assistant share (%)"]],
+                use_container_width=True,
+                height=520,
+            )
+
+    st.markdown(" ")
 
 
 def _render_downloads(year_choice, timezone, archetype, metrics, cat_df, ts_df, time_cat_df, time_ts_df, hi, df_f, conv_df):
-    st.subheader("Download your results")
-    year_label = year_choice if year_choice != "All time" else "All time"
+    container = st.container()
+    with container:
+        st.subheader("Download your results")
+        st.markdown(" ")
+        year_label = year_choice if year_choice != "All time" else "All time"
 
-    summary = {
-        "year": year_label,
-        "timezone": timezone,
-        "archetype": {
-            "title": archetype.title,
-            "emoji": archetype.emoji,
-            "tagline": archetype.tagline,
-            "traits": list(archetype.traits),
-        },
-        "metrics": metrics,
-        "highlights": {
-            "peak_day": str(hi.get("peak_day")),
-            "peak_day_tokens": int(hi.get("peak_day_tokens", 0)),
-            "busiest_hour": hi.get("busiest_hour"),
-            "top_conversation": hi.get("top_conversation"),
-            "longest_assistant": hi.get("longest_assistant"),
-        },
-        "top_categories": cat_df.head(10).to_dict(orient="records"),
-        "top_time_categories": time_cat_df.head(10).to_dict(orient="records"),
-        "time_over_time": time_ts_df.to_dict(orient="records"),
-    }
+        summary = {
+            "year": year_label,
+            "timezone": timezone,
+            "archetype": {
+                "title": archetype.title,
+                "emoji": archetype.emoji,
+                "tagline": archetype.tagline,
+                "traits": list(archetype.traits),
+            },
+            "metrics": metrics,
+            "highlights": {
+                "peak_day": str(hi.get("peak_day")),
+                "peak_day_tokens": int(hi.get("peak_day_tokens", 0)),
+                "busiest_hour": hi.get("busiest_hour"),
+                "top_conversation": hi.get("top_conversation"),
+                "longest_assistant": hi.get("longest_assistant"),
+            },
+            "top_categories": cat_df.head(10).to_dict(orient="records"),
+            "top_time_categories": time_cat_df.head(10).to_dict(orient="records"),
+            "time_over_time": time_ts_df.to_dict(orient="records"),
+        }
 
-    st.download_button(
-        "Download summary (JSON)",
-        data=json.dumps(summary, default=str, indent=2).encode("utf-8"),
-        file_name=f"chatgpt_wrapped_{year_label.replace(' ', '_').lower()}.json",
-        mime="application/json",
-    )
+        st.download_button(
+            "Download summary (JSON)",
+            data=json.dumps(summary, default=str, indent=2).encode("utf-8"),
+            file_name=f"chatgpt_wrapped_{year_label.replace(' ', '_').lower()}.json",
+            mime="application/json",
+        )
 
-    st.download_button(
-        "Download per-message data (CSV)",
-        data=df_f.to_csv(index=False).encode("utf-8"),
-        file_name=f"chatgpt_messages_{year_label.replace(' ', '_').lower()}.csv",
-        mime="text/csv",
-    )
+        st.markdown(" ")
 
-    st.download_button(
-        "Download per-conversation data (CSV)",
-        data=conv_df.to_csv(index=False).encode("utf-8"),
-        file_name=f"chatgpt_conversations_{year_label.replace(' ', '_').lower()}.csv",
-        mime="text/csv",
-    )
+        st.download_button(
+            "Download per-message data (CSV)",
+            data=df_f.to_csv(index=False).encode("utf-8"),
+            file_name=f"chatgpt_messages_{year_label.replace(' ', '_').lower()}.csv",
+            mime="text/csv",
+        )
 
-    html = build_wrapped_html(
-        title=archetype.title,
-        tagline=archetype.tagline,
-        emoji=archetype.emoji,
-        metrics=metrics,
-        tokens_cat=cat_df,
-        tokens_time=ts_df,
-        time_cat=time_cat_df,
-        time_over_time=time_ts_df,
-        highlights=hi,
-        year_label=year_label,
-    )
+        st.markdown(" ")
 
-    st.download_button(
-        "Download shareable HTML report",
-        data=html.encode("utf-8"),
-        file_name=f"chatgpt_wrapped_{year_label.replace(' ', '_').lower()}.html",
-        mime="text/html",
-        help="A single HTML file you can open in a browser and share.",
-    )
+        st.download_button(
+            "Download per-conversation data (CSV)",
+            data=conv_df.to_csv(index=False).encode("utf-8"),
+            file_name=f"chatgpt_conversations_{year_label.replace(' ', '_').lower()}.csv",
+            mime="text/csv",
+        )
 
-    st.caption("Token counts are derived from the export text using tokenisation. ChatGPT exports do not include official token usage.")
+        st.markdown(" ")
+
+        html = build_wrapped_html(
+            title=archetype.title,
+            tagline=archetype.tagline,
+            emoji=archetype.emoji,
+            metrics=metrics,
+            tokens_cat=cat_df,
+            tokens_time=ts_df,
+            time_cat=time_cat_df,
+            time_over_time=time_ts_df,
+            highlights=hi,
+            year_label=year_label,
+        )
+
+        st.download_button(
+            "Download shareable HTML report",
+            data=html.encode("utf-8"),
+            file_name=f"chatgpt_wrapped_{year_label.replace(' ', '_').lower()}.html",
+            mime="text/html",
+            help="A single HTML file you can open in a browser and share.",
+        )
+
+        st.markdown(" ")
+        st.caption("Token counts are derived from the export text using tokenisation. ChatGPT exports do not include official token usage.")
+
+    st.markdown(" ")
 
 
 def main() -> None:
