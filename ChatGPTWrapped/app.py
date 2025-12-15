@@ -122,28 +122,15 @@ def _filter_df(df: pd.DataFrame, year_choice: str, start: Optional[date], end: O
 
 
 def _render_upload_sidebar() -> tuple[Optional[st.runtime.uploaded_file_manager.UploadedFile], str, bool]:  # type: ignore[name-defined]
-    """Render upload controls and return the chosen file, timezone, and token counter preference."""
+    """Render upload controls and return the chosen file and timezone."""
 
     with st.sidebar:
         st.subheader("Upload")
         uploaded = st.file_uploader("ChatGPT export (.zip) or conversations.json", type=["zip", "json"], key="export_upload")
         timezone = st.text_input("Timezone", value=DEFAULT_TZ, help="Used for grouping by day/hour.", key="timezone")
 
-        st.divider()
-        st.subheader("Token counting")
-        st.caption("Token counts are estimated from message text; exports do not include official usage.")
-
-        _, has_tiktoken, err = get_token_counter()
-
-        use_tiktoken = st.checkbox(
-            "Use tiktoken for more accurate counts",
-            value=has_tiktoken,
-            disabled=not has_tiktoken,
-            help="Falls back to the heuristic estimator when disabled.",
-        )
-
-        if not has_tiktoken and err:
-            st.caption("tiktoken is not installed; using heuristic estimation instead.")
+    _, has_tiktoken, _ = get_token_counter()
+    use_tiktoken = has_tiktoken
 
     return uploaded, timezone, use_tiktoken
 
