@@ -172,6 +172,44 @@ SECONDARY_ARCHETYPES: Dict[Tuple[str, str], Archetype] = {
 }
 
 
+def _blend_archetypes(primary_cat: str, secondary_cat: str) -> Archetype:
+    primary = PRIMARY_ARCHETYPES[primary_cat]
+    secondary = PRIMARY_ARCHETYPES[secondary_cat]
+
+    blended_title = f"{primary.title} + {secondary.title}"
+    blended_tagline = (
+        f"You combine {primary_cat.lower()} with {secondary_cat.lower()} to get work done."
+    )
+    blended_emoji = f"{primary.emoji}{secondary.emoji}"
+    blended_traits = (primary.traits[0], secondary.traits[0], "Hybrid thinker")
+
+    return Archetype(
+        title=blended_title,
+        tagline=blended_tagline,
+        emoji=blended_emoji,
+        traits=blended_traits,
+    )
+
+
+def _build_composite_archetypes() -> Dict[Tuple[str, str], Archetype]:
+    composite: Dict[Tuple[str, str], Archetype] = {}
+    categories = list(PRIMARY_ARCHETYPES.keys())
+
+    for first in categories:
+        for second in categories:
+            if (first, second) in SECONDARY_ARCHETYPES:
+                composite[(first, second)] = SECONDARY_ARCHETYPES[(first, second)]
+            elif first == second:
+                composite[(first, second)] = PRIMARY_ARCHETYPES[first]
+            else:
+                composite[(first, second)] = _blend_archetypes(first, second)
+
+    return composite
+
+
+COMPOSITE_ARCHETYPES = _build_composite_archetypes()
+
+
 def assign_archetype(tokens_by_category: pd.DataFrame) -> Archetype:
     if tokens_by_category.empty:
         return PRIMARY_ARCHETYPES["Personal and lifestyle"]
@@ -179,16 +217,15 @@ def assign_archetype(tokens_by_category: pd.DataFrame) -> Archetype:
     top_row = tokens_by_category.iloc[0]
     top_cat = str(top_row["category"])
 
-    second_cat = None
     if len(tokens_by_category) > 1:
         second_cat = str(tokens_by_category.iloc[1]["category"])
+    else:
+        second_cat = top_cat
 
-    if top_cat and second_cat:
-        combo_key = (top_cat, second_cat)
-        if combo_key in SECONDARY_ARCHETYPES:
-            return SECONDARY_ARCHETYPES[combo_key]
-
-    return PRIMARY_ARCHETYPES.get(top_cat, PRIMARY_ARCHETYPES["Personal and lifestyle"])
+    combo_key = (top_cat, second_cat)
+    return COMPOSITE_ARCHETYPES.get(
+        combo_key, PRIMARY_ARCHETYPES["Personal and lifestyle"]
+    )
 
 
 def add_flair(metrics: Dict[str, float]) -> Dict[str, str]:
