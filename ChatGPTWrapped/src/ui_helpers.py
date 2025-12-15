@@ -64,7 +64,7 @@ p, .stMarkdown {{ color: var(--text); font-family: var(--font-primary); }}
   color: white;
   box-shadow: 0 25px 55px rgba(17, 24, 39, 0.25);
   border: 1px solid color-mix(in srgb, white 12%, transparent);
-}
+  }}
 .hero__orbit {{
   position: absolute;
   inset: -20%;
@@ -97,7 +97,7 @@ p, .stMarkdown {{ color: var(--text); font-family: var(--font-primary); }}
   box-shadow: 0 20px 40px color-mix(in srgb, var(--accent) 10%, transparent);
   position: relative;
   overflow: hidden;
-}
+  }}
 .card:before {{
   content: "";
   position: absolute;
@@ -121,7 +121,7 @@ p, .stMarkdown {{ color: var(--text); font-family: var(--font-primary); }}
   margin-bottom: 0.35rem;
   font-family: var(--font-secondary);
   backdrop-filter: blur(4px);
-}
+  }}
 .pill-strong {{ color: #0b1224; background: white; border-color: color-mix(in srgb, var(--accent) 35%, white); font-weight: 600; }}
 .hr {{ height:1px; background: color-mix(in srgb, var(--text) 9%, transparent); margin: 0.9rem 0; }}
 
