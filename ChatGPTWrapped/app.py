@@ -25,7 +25,7 @@ from src.archetypes import add_flair, assign_archetype
 from src.categorise import categorise
 from src.parse_export import ParsedMessage, parse_conversations
 from src.report_export import build_wrapped_html, build_wrapped_jpg
-from src.tokens import estimate_tokens_heuristic, get_token_counter
+from src.tokens import get_token_counter
 from src.ui_helpers import inject_css, metric_card, pills
 from src.theme import HEATMAP_BLUE_SCALE, apply_plotly_theme, DATA_COLORS
 
@@ -67,9 +67,8 @@ def _load_messages_from_upload(raw: bytes, name: str, timezone: str) -> List[Par
 
 
 @st.cache_data(show_spinner=False)
-def _build_df(messages: List[ParsedMessage], use_tiktoken: bool) -> pd.DataFrame:
-    counter_fn, has_tiktoken = get_token_counter()
-    counter = counter_fn if use_tiktoken and has_tiktoken else estimate_tokens_heuristic
+def _build_df(messages: List[ParsedMessage]) -> pd.DataFrame:
+    counter = get_token_counter()
 
     rows: List[Dict] = []
     for m in messages:
@@ -112,8 +111,8 @@ def _filter_df(df: pd.DataFrame, year_choice: str, start: Optional[date], end: O
     return out
 
 
-def _render_upload_sidebar(using_tiktoken: bool) -> tuple[Optional[st.runtime.uploaded_file_manager.UploadedFile], str]:  # type: ignore[name-defined]
-    """Render upload and token settings, returning the chosen file and timezone."""
+def _render_upload_sidebar() -> tuple[Optional[st.runtime.uploaded_file_manager.UploadedFile], str]:  # type: ignore[name-defined]
+    """Render upload controls and return the chosen file and timezone."""
 
     with st.sidebar:
         st.subheader("Upload")
@@ -122,10 +121,7 @@ def _render_upload_sidebar(using_tiktoken: bool) -> tuple[Optional[st.runtime.up
 
         st.divider()
         st.subheader("Token counting")
-        if using_tiktoken:
-            st.caption("Using `tiktoken` for accurate tokenisation.")
-        else:
-            st.warning("`tiktoken` is not installed. Falling back to an approximate heuristic.")
+        st.caption("Token counts are estimated from message text; exports do not include official usage.")
 
     return uploaded, timezone
 
@@ -355,7 +351,7 @@ def _render_downloads(year_choice, timezone, archetype, metrics, cat_df, ts_df, 
             "Install optional image dependencies (kaleido) to generate a JPG preview." if not jpg_error else f"Could not generate JPG preview: {jpg_error}"
         )
 
-    st.caption("Token counts are derived from the export text using tokenisation. ChatGPT exports do not include official token usage.")
+    st.caption("Token counts are estimated from the export text. ChatGPT exports do not include official token usage.")
 
 
 def main() -> None:
@@ -366,8 +362,7 @@ def main() -> None:
     st.title("✨ ChatGPT Wrapped")
     st.caption("Upload your ChatGPT export and get a clean, shareable year-in-review.")
 
-    _, using_tiktoken = get_token_counter()
-    uploaded, timezone = _render_upload_sidebar(using_tiktoken)
+    uploaded, timezone = _render_upload_sidebar()
 
     if not uploaded:
         st.info("Upload a ChatGPT export ZIP or a conversations.json file to begin.")
@@ -383,7 +378,7 @@ def main() -> None:
         st.error(f"Could not parse the uploaded file: {e}")
         st.stop()
 
-    df = _build_df(messages, use_tiktoken=using_tiktoken)
+    df = _build_df(messages)
     if df.empty:
         st.warning("No messages found in this export (or messages had no text).")
         st.stop()
@@ -406,7 +401,7 @@ def main() -> None:
     archetype = assign_archetype(cat_df)
     flair = add_flair(metrics)
 
-    token_label = "Tokens (tiktoken)" if using_tiktoken else "Tokens (estimated)"
+    token_label = "Tokens (estimated)"
     _render_archetype_summary(archetype, flair, metrics, token_label)
 
     tab_wrapped, tab_dive, tab_convos, tab_download = st.tabs(["Wrapped", "Deep dive", "Conversations", "Download"])
