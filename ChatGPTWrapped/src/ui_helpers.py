@@ -25,6 +25,7 @@ def inject_css() -> None:
   --accent: {ACCENT_COLOR};
   --font-primary: {PRIMARY_FONT};
   --font-secondary: {SECONDARY_FONT};
+  color-scheme: light;
 }}
 html, body {{
   background: var(--bg);
