@@ -68,7 +68,7 @@ def _load_messages_from_upload(raw: bytes, name: str, timezone: str) -> List[Par
 
 @st.cache_data(show_spinner=False)
 def _build_df(messages: List[ParsedMessage], use_tiktoken: bool) -> pd.DataFrame:
-    counter_fn, has_tiktoken = get_token_counter()
+    counter_fn, has_tiktoken, _ = get_token_counter()
     counter = counter_fn if use_tiktoken and has_tiktoken else estimate_tokens_heuristic
 
     rows: List[Dict] = []
@@ -112,7 +112,7 @@ def _filter_df(df: pd.DataFrame, year_choice: str, start: Optional[date], end: O
     return out
 
 
-def _render_upload_sidebar(using_tiktoken: bool) -> tuple[Optional[st.runtime.uploaded_file_manager.UploadedFile], str]:  # type: ignore[name-defined]
+def _render_upload_sidebar(using_tiktoken: bool, tiktoken_error: Optional[str]) -> tuple[Optional[st.runtime.uploaded_file_manager.UploadedFile], str]:  # type: ignore[name-defined]
     """Render upload and token settings, returning the chosen file and timezone."""
 
     with st.sidebar:
@@ -125,7 +125,10 @@ def _render_upload_sidebar(using_tiktoken: bool) -> tuple[Optional[st.runtime.up
         if using_tiktoken:
             st.caption("Using `tiktoken` for accurate tokenisation.")
         else:
-            st.warning("`tiktoken` is not installed. Falling back to an approximate heuristic.")
+            warning = "`tiktoken` is unavailable. Falling back to an approximate heuristic."
+            if tiktoken_error:
+                warning += f"\n{tiktoken_error}"
+            st.warning(warning)
 
     return uploaded, timezone
 
@@ -366,8 +369,8 @@ def main() -> None:
     st.title("✨ ChatGPT Wrapped")
     st.caption("Upload your ChatGPT export and get a clean, shareable year-in-review.")
 
-    _, using_tiktoken = get_token_counter()
-    uploaded, timezone = _render_upload_sidebar(using_tiktoken)
+    _, using_tiktoken, tiktoken_error = get_token_counter()
+    uploaded, timezone = _render_upload_sidebar(using_tiktoken, tiktoken_error)
 
     if not uploaded:
         st.info("Upload a ChatGPT export ZIP or a conversations.json file to begin.")
