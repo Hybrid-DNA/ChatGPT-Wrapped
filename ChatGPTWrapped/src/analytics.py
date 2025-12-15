@@ -108,12 +108,13 @@ def top_keywords(df: pd.DataFrame, n: int = 25) -> pd.DataFrame:
         "the","a","an","and","or","to","of","in","for","on","with","is","it","this","that","be","as","are",
         "i","you","we","they","he","she","them","us","my","your","our","me","at","from","by","not","but",
         "can","could","would","should","do","does","did","so","if","then","than","just","like",
+        "select","def","join","null","class","function","return","while","break","continue","import","export",
     }
 
     text = " ".join(df["text"].astype(str).tolist()).lower()
     import re
     words = re.findall(r"[a-z0-9_']{3,}", text)
-    words = [w for w in words if w not in stop and not w.isdigit()]
+    words = [w for w in words if w not in stop and not w.isdigit() and "_" not in w]
     if not words:
         return pd.DataFrame(columns=["keyword", "count"])
 
