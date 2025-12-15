@@ -67,8 +67,9 @@ def _load_messages_from_upload(raw: bytes, name: str, timezone: str) -> List[Par
 
 
 @st.cache_data(show_spinner=False)
-def _build_df(messages: List[ParsedMessage]) -> pd.DataFrame:
-    counter = get_token_counter()
+def _build_df(messages: List[ParsedMessage], use_tiktoken: bool) -> pd.DataFrame:
+    counter_fn, has_tiktoken, _ = get_token_counter()
+    counter = counter_fn if use_tiktoken and has_tiktoken else estimate_tokens_heuristic
 
     rows: List[Dict] = []
     for m in messages:
