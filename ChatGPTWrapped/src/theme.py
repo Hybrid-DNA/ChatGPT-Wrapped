@@ -1,21 +1,21 @@
 DATA_COLORS = [
-    "#418AB3",
-    "#A6B727",
-    "#F69200",
-    "#123552",
-    "#FEC306",
-    "#DF5327",
-    "#9D44B5",
-    "#6E0D25",
+    "#2563EB",
+    "#0EA5E9",
+    "#22C55E",
+    "#111827",
+    "#F59E0B",
+    "#F97316",
+    "#7C3AED",
+    "#14B8A6",
 ]
 # Used for time-of-day heatmaps to provide a single-color gradient from white to deep blue.
-HEATMAP_BLUE_SCALE = ["#FFFFFF", "#E6EEF5", "#D0DFEC", "#ABC6DD", "#7CA6C9", "#4D83AE", "#123552"]
+HEATMAP_BLUE_SCALE = ["#FFFFFF", "#E8F0FB", "#D7E5FA", "#B6CFF6", "#8FB5EF", "#5E90E6", "#1D4ED8"]
 
-PRIMARY_FONT = "'Space Grotesk', 'Inter', system-ui, -apple-system, sans-serif"
+PRIMARY_FONT = "'Lato', system-ui, -apple-system, sans-serif"
 SECONDARY_FONT = "'Inter', system-ui, -apple-system, sans-serif"
-BACKGROUND_COLOR = "#f5f8fb"
-TEXT_COLOR = "#123552"
-MUTED_TEXT_COLOR = "#5b6e80"
+BACKGROUND_COLOR = "#f8fbff"
+TEXT_COLOR = "#0f172a"
+MUTED_TEXT_COLOR = "#4b5563"
 ACCENT_COLOR = DATA_COLORS[0]
 
 
