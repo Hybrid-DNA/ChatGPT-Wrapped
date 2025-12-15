@@ -1,0 +1,353 @@
+from __future__ import annotations
+
+import json
+from datetime import date
+from typing import Dict, List, Optional
+
+import pandas as pd
+import plotly.express as px
+import streamlit as st
+
+from src.analytics import (
+    activity_heatmap,
+    build_message_dataframe,
+    conversation_level,
+    highlights,
+    top_keywords,
+    tokens_by_category,
+    tokens_by_category_and_role,
+    tokens_over_time,
+    totals,
+)
+from src.archetypes import add_flair, assign_archetype
+from src.categorise import categorise
+from src.parse_export import ParsedMessage, parse_conversations
+from src.report_export import build_wrapped_html
+from src.tokens import estimate_tokens_heuristic, get_token_counter
+from src.ui_helpers import inject_css, metric_card, pills
+
+APP_TITLE = "ChatGPT Wrapped"
+DEFAULT_TZ = "Australia/Melbourne"
+
+
+def _format_int(n: int) -> str:
+    return f"{n:,}"
+
+
+def _load_messages_from_upload(uploaded, timezone: str) -> List[ParsedMessage]:
+    name = getattr(uploaded, "name", "") or ""
+    raw = uploaded.getvalue()
+
+    if name.lower().endswith(".zip"):
+        import zipfile, io
+        with zipfile.ZipFile(io.BytesIO(raw)) as zf:
+            conv_path = None
+            for c in ("conversations.json", "data/conversations.json", "chatgpt/conversations.json"):
+                if c in zf.namelist():
+                    conv_path = c
+                    break
+            if conv_path is None:
+                for n in zf.namelist():
+                    if n.lower().endswith("conversations.json"):
+                        conv_path = n
+                        break
+            if conv_path is None:
+                raise ValueError("Could not find conversations.json inside the ZIP export.")
+            conv_data = json.loads(zf.read(conv_path).decode("utf-8"))
+    else:
+        conv_data = json.loads(raw.decode("utf-8"))
+
+    return parse_conversations(conv_data, timezone=timezone)
+
+
+@st.cache_data(show_spinner=False)
+def _build_df(messages: List[ParsedMessage], use_tiktoken: bool) -> pd.DataFrame:
+    counter = None
+    if use_tiktoken:
+        counter = get_token_counter()
+
+    rows: List[Dict] = []
+    for m in messages:
+        tok = counter(m.text) if counter else estimate_tokens_heuristic(m.text)
+        rows.append(
+            {
+                "conversation_id": m.conversation_id,
+                "conversation_title": m.conversation_title,
+                "message_id": m.message_id,
+                "role": m.role,
+                "created_at": m.created_at,
+                "text": m.text,
+                "tokens": int(tok),
+                "category": categorise(m.text),
+            }
+        )
+    return build_message_dataframe(rows)
+
+
+def _year_options(df: pd.DataFrame) -> List[str]:
+    years = sorted(df["year"].dropna().unique().tolist()) if not df.empty else []
+    years = [str(int(y)) for y in years]
+    return ["All time"] + years
+
+
+def _filter_df(df: pd.DataFrame, year_choice: str, start: Optional[date], end: Optional[date]) -> pd.DataFrame:
+    out = df
+    if year_choice != "All time":
+        try:
+            y = int(year_choice)
+            out = out[out["year"] == y]
+        except Exception:
+            pass
+
+    if start:
+        out = out[out["created_at"].dt.date >= start]
+    if end:
+        out = out[out["created_at"].dt.date <= end]
+
+    return out
+
+
+def main() -> None:
+    st.set_page_config(page_title=APP_TITLE, page_icon="✨", layout="wide")
+    inject_css()
+
+    st.title("✨ ChatGPT Wrapped")
+    st.caption("Upload your ChatGPT export and get a clean, shareable year-in-review.")
+
+    with st.sidebar:
+        st.subheader("Upload")
+        uploaded = st.file_uploader("ChatGPT export (.zip) or conversations.json", type=["zip", "json"])
+        timezone = st.text_input("Timezone", value=DEFAULT_TZ, help="Used for grouping by day/hour.")
+
+        st.divider()
+        st.subheader("Token counting")
+        try:
+            import tiktoken  # noqa: F401
+            has_tiktoken = True
+        except Exception:
+            has_tiktoken = False
+
+        use_tiktoken = st.toggle("Use tiktoken (more accurate)", value=has_tiktoken, disabled=not has_tiktoken)
+        if not has_tiktoken:
+            st.caption("Install `tiktoken` for more accurate tokenisation. This app will use a close heuristic instead.")
+
+        st.divider()
+        st.subheader("Filters")
+        year_choice = st.selectbox("Year", options=["All time"], index=0)
+        ignore_dates = st.checkbox("Ignore date range", value=True)
+        start_date = st.date_input("Start date", value=None, disabled=ignore_dates)
+        end_date = st.date_input("End date", value=None, disabled=ignore_dates)
+
+    if not uploaded:
+        st.info("Upload a ChatGPT export ZIP or a conversations.json file to begin.")
+        st.stop()
+
+    try:
+        with st.spinner("Parsing export..."):
+            messages = _load_messages_from_upload(uploaded, timezone=timezone)
+    except Exception as e:
+        st.error(f"Could not parse the uploaded file: {e}")
+        st.stop()
+
+    df = _build_df(messages, use_tiktoken=use_tiktoken)
+    if df.empty:
+        st.warning("No messages found in this export (or messages had no text).")
+        st.stop()
+
+    # Re-render Year selector with real options after load
+    years = _year_options(df)
+    with st.sidebar:
+        default_year = str(date.today().year)
+        idx = years.index(default_year) if default_year in years else 0
+        year_choice = st.selectbox("Year", options=years, index=idx)
+
+    df_f = _filter_df(df, year_choice, None if ignore_dates else start_date, None if ignore_dates else end_date)
+
+    conv_df = conversation_level(df_f)
+    metrics = totals(df_f)
+    cat_df = tokens_by_category(df_f)
+    by_cat_role = tokens_by_category_and_role(df_f)
+    ts_df = tokens_over_time(df_f, freq="D")
+    hm = activity_heatmap(df_f)
+    kw = top_keywords(df_f, n=25)
+    hi = highlights(df_f, conv_df)
+
+    archetype = assign_archetype(cat_df)
+    flair = add_flair(metrics)
+
+    left, right = st.columns([1.25, 1.0], gap="large")
+    with left:
+        st.markdown(f"## {archetype.emoji} **{archetype.title}**")
+        st.markdown(archetype.tagline)
+        pills(list(archetype.traits))
+        st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
+        pills([flair.get("intensity",""), flair.get("cadence",""), flair.get("style","")])
+
+    with right:
+        c1, c2, c3 = st.columns(3, gap="small")
+        with c1:
+            metric_card("Estimated tokens", _format_int(int(metrics.get("tokens", 0))), "Estimated from message text.")
+        with c2:
+            metric_card("Messages", _format_int(int(metrics.get("messages", 0))))
+        with c3:
+            metric_card("Conversations", _format_int(int(metrics.get("conversations", 0))))
+
+        c4, c5, c6 = st.columns(3, gap="small")
+        with c4:
+            metric_card("You (tokens)", _format_int(int(metrics.get("user_tokens", 0))))
+        with c5:
+            metric_card("Assistant (tokens)", _format_int(int(metrics.get("assistant_tokens", 0))))
+        with c6:
+            metric_card("Assistant share", f"{metrics.get('assistant_token_share',0)*100:.1f}%")
+
+    tab_wrapped, tab_dive, tab_convos, tab_download = st.tabs(["Wrapped", "Deep dive", "Conversations", "Download"])
+
+    with tab_wrapped:
+        a, b = st.columns([1.05, 0.95], gap="large")
+        with a:
+            st.subheader("What you used ChatGPT for")
+            fig = px.pie(cat_df, values="tokens", names="category", hole=0.55)
+            fig.update_layout(margin=dict(l=10, r=10, t=10, b=10), height=420, legend_title_text="")
+            st.plotly_chart(fig, use_container_width=True)
+
+        with b:
+            st.subheader("Your highlights")
+            items: List[str] = []
+            if hi.get("peak_day"):
+                items.append(f"Peak day: {hi['peak_day']} ({_format_int(int(hi.get('peak_day_tokens',0)))} tokens)")
+            if hi.get("busiest_hour") is not None:
+                items.append(f"Busiest hour: {int(hi['busiest_hour'])}:00")
+            top_conv = hi.get("top_conversation") or {}
+            if top_conv:
+                items.append(f"Biggest thread: {top_conv.get('title')} ({_format_int(int(top_conv.get('tokens',0)))} tokens)")
+            longest = hi.get("longest_assistant") or {}
+            if longest:
+                items.append(f"Longest assistant reply: {_format_int(int(longest.get('tokens',0)))} tokens")
+
+            for s in items:
+                st.markdown(f"- {s}")
+
+            st.markdown("")
+            st.subheader("Top keywords")
+            if kw.empty:
+                st.caption("Not enough text to extract keywords.")
+            else:
+                st.dataframe(kw, use_container_width=True, height=330)
+
+    with tab_dive:
+        st.subheader("Activity over time")
+        if not ts_df.empty:
+            fig_ts = px.area(ts_df, x="time", y="tokens", color="role")
+            fig_ts.update_layout(margin=dict(l=10, r=10, t=10, b=10), height=360, legend_title_text="")
+            st.plotly_chart(fig_ts, use_container_width=True)
+        else:
+            st.caption("Not enough timestamped data to build a timeline.")
+
+        st.markdown("")
+        c1, c2 = st.columns([1.0, 1.0], gap="large")
+        with c1:
+            st.subheader("Tokens by category and role")
+            if not by_cat_role.empty:
+                fig_bar = px.bar(by_cat_role, x="tokens", y="category", color="role", orientation="h")
+                fig_bar.update_layout(margin=dict(l=10, r=10, t=10, b=10), height=420, legend_title_text="")
+                st.plotly_chart(fig_bar, use_container_width=True)
+
+        with c2:
+            st.subheader("When you use ChatGPT")
+            if not hm.empty:
+                hm2 = hm.copy()
+                hm2.index.name = "Day"
+                hm2.columns = [str(int(c)) for c in hm2.columns]
+                fig_hm = px.imshow(hm2, aspect="auto")
+                fig_hm.update_layout(margin=dict(l=10, r=10, t=10, b=10), height=420, coloraxis_showscale=False)
+                st.plotly_chart(fig_hm, use_container_width=True)
+
+    with tab_convos:
+        st.subheader("Top conversations (by token estimate)")
+        if conv_df.empty:
+            st.caption("No conversations available under the current filters.")
+        else:
+            show = conv_df.head(50).copy()
+            show["first_at"] = show["first_at"].dt.strftime("%Y-%m-%d")
+            show["assistant_share"] = (show["assistant_share"] * 100).round(1)
+            show = show.rename(
+                columns={
+                    "conversation_title": "Title",
+                    "first_at": "First message",
+                    "messages": "Messages",
+                    "tokens": "Tokens",
+                    "assistant_share": "Assistant share (%)",
+                }
+            )
+            st.dataframe(show[["Title", "First message", "Messages", "Tokens", "Assistant share (%)"]],
+                         use_container_width=True, height=520)
+
+    with tab_download:
+        st.subheader("Download your results")
+        year_label = year_choice if year_choice != "All time" else "All time"
+
+        summary = {
+            "year": year_label,
+            "timezone": timezone,
+            "archetype": {
+                "title": archetype.title,
+                "emoji": archetype.emoji,
+                "tagline": archetype.tagline,
+                "traits": list(archetype.traits),
+            },
+            "metrics": metrics,
+            "highlights": {
+                "peak_day": str(hi.get("peak_day")),
+                "peak_day_tokens": int(hi.get("peak_day_tokens", 0)),
+                "busiest_hour": hi.get("busiest_hour"),
+                "top_conversation": hi.get("top_conversation"),
+                "longest_assistant": hi.get("longest_assistant"),
+            },
+            "top_categories": cat_df.head(10).to_dict(orient="records"),
+        }
+
+        st.download_button(
+            "Download summary (JSON)",
+            data=json.dumps(summary, default=str, indent=2).encode("utf-8"),
+            file_name=f"chatgpt_wrapped_{year_label.replace(' ','_').lower()}.json",
+            mime="application/json",
+        )
+
+        st.download_button(
+            "Download per-message data (CSV)",
+            data=df_f.to_csv(index=False).encode("utf-8"),
+            file_name=f"chatgpt_messages_{year_label.replace(' ','_').lower()}.csv",
+            mime="text/csv",
+        )
+
+        st.download_button(
+            "Download per-conversation data (CSV)",
+            data=conv_df.to_csv(index=False).encode("utf-8"),
+            file_name=f"chatgpt_conversations_{year_label.replace(' ','_').lower()}.csv",
+            mime="text/csv",
+        )
+
+        html = build_wrapped_html(
+            title=archetype.title,
+            tagline=archetype.tagline,
+            emoji=archetype.emoji,
+            metrics=metrics,
+            tokens_cat=cat_df,
+            tokens_time=ts_df,
+            highlights=hi,
+            year_label=year_label,
+        )
+
+        st.download_button(
+            "Download shareable HTML report",
+            data=html.encode("utf-8"),
+            file_name=f"chatgpt_wrapped_{year_label.replace(' ','_').lower()}.html",
+            mime="text/html",
+            help="A single HTML file you can open in a browser and share.",
+        )
+
+        st.caption("Token counts are estimated from the export text. ChatGPT exports do not include official token usage.")
+
+
+if __name__ == "__main__":
+    main()
