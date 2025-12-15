@@ -18,8 +18,6 @@ def inject_css() -> None:
     st.markdown(
         f"""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Lato:wght@300;400;600;700&family=Inter:wght@400;500;600&display=swap');
-
 :root {{
   --bg: {BACKGROUND_COLOR};
   --text: {TEXT_COLOR};
@@ -171,7 +169,7 @@ p, .stMarkdown {{ color: var(--text); font-family: var(--font-primary); line-hei
   border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--border));
   padding: 0.55rem 1rem;
   font-weight: 650;
-  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.18);
+  box-shadow: 0 10px 24px rgba(65, 138, 179, 0.18);
 }}
 .stDownloadButton>button:hover, .stButton>button:hover {{ filter: brightness(1.05); }}
 
