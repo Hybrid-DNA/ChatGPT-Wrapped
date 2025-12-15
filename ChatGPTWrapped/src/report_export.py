@@ -201,7 +201,4 @@ def build_wrapped_jpg(title: str,
     fig.update_xaxes(showgrid=True, gridcolor="rgba(12,18,32,0.08)")
     fig.update_yaxes(showgrid=True, gridcolor="rgba(12,18,32,0.08)")
 
-    try:
-        return pio.to_image(fig, format="jpg", width=1200, height=800, scale=2)
-    except Exception:
-        return None
+    return pio.to_image(fig, format="jpg", width=1200, height=800, scale=2)
