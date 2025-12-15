@@ -22,9 +22,10 @@ from src.analytics import (
 from src.archetypes import add_flair, assign_archetype
 from src.categorise import categorise
 from src.parse_export import ParsedMessage, parse_conversations
-from src.report_export import build_wrapped_html
+from src.report_export import build_wrapped_html, build_wrapped_jpg
 from src.tokens import estimate_tokens_heuristic, get_token_counter
 from src.ui_helpers import inject_css, metric_card, pills
+from src.theme import apply_plotly_theme, DATA_COLORS
 
 APP_TITLE = "ChatGPT Wrapped"
 DEFAULT_TZ = "Australia/Melbourne"
@@ -108,6 +109,7 @@ def _filter_df(df: pd.DataFrame, year_choice: str, start: Optional[date], end: O
 
 def main() -> None:
     st.set_page_config(page_title=APP_TITLE, page_icon="✨", layout="wide")
+    apply_plotly_theme()
     inject_css()
 
     st.title("✨ ChatGPT Wrapped")
@@ -204,7 +206,7 @@ def main() -> None:
         a, b = st.columns([1.05, 0.95], gap="large")
         with a:
             st.subheader("What you used ChatGPT for")
-            fig = px.pie(cat_df, values="tokens", names="category", hole=0.55)
+            fig = px.pie(cat_df, values="tokens", names="category", hole=0.55, color_discrete_sequence=DATA_COLORS)
             fig.update_layout(margin=dict(l=10, r=10, t=10, b=10), height=420, legend_title_text="")
             st.plotly_chart(fig, use_container_width=True)
 
@@ -235,7 +237,7 @@ def main() -> None:
     with tab_dive:
         st.subheader("Activity over time")
         if not ts_df.empty:
-            fig_ts = px.area(ts_df, x="time", y="tokens", color="role")
+            fig_ts = px.area(ts_df, x="time", y="tokens", color="role", color_discrete_sequence=DATA_COLORS)
             fig_ts.update_layout(margin=dict(l=10, r=10, t=10, b=10), height=360, legend_title_text="")
             st.plotly_chart(fig_ts, use_container_width=True)
         else:
@@ -246,7 +248,7 @@ def main() -> None:
         with c1:
             st.subheader("Tokens by category and role")
             if not by_cat_role.empty:
-                fig_bar = px.bar(by_cat_role, x="tokens", y="category", color="role", orientation="h")
+                fig_bar = px.bar(by_cat_role, x="tokens", y="category", color="role", orientation="h", color_discrete_sequence=DATA_COLORS)
                 fig_bar.update_layout(margin=dict(l=10, r=10, t=10, b=10), height=420, legend_title_text="")
                 st.plotly_chart(fig_bar, use_container_width=True)
 
@@ -256,7 +258,7 @@ def main() -> None:
                 hm2 = hm.copy()
                 hm2.index.name = "Day"
                 hm2.columns = [str(int(c)) for c in hm2.columns]
-                fig_hm = px.imshow(hm2, aspect="auto")
+                fig_hm = px.imshow(hm2, aspect="auto", color_continuous_scale=DATA_COLORS)
                 fig_hm.update_layout(margin=dict(l=10, r=10, t=10, b=10), height=420, coloraxis_showscale=False)
                 st.plotly_chart(fig_hm, use_container_width=True)
 
@@ -343,6 +345,32 @@ def main() -> None:
             mime="text/html",
             help="A single HTML file you can open in a browser and share.",
         )
+
+        jpg_bytes = None
+        jpg_error: Optional[str] = None
+        try:
+            jpg_bytes = build_wrapped_jpg(
+                title=archetype.title,
+                tagline=archetype.tagline,
+                emoji=archetype.emoji,
+                metrics=metrics,
+                tokens_cat=cat_df,
+                tokens_time=ts_df,
+                highlights=hi,
+                year_label=year_label,
+            )
+        except Exception as e:
+            jpg_error = str(e)
+
+        if jpg_bytes:
+            st.image(jpg_bytes, caption="Shareable JPG preview", use_column_width=True)
+            st.download_button(
+                "Download shareable JPG", data=jpg_bytes, file_name=f"chatgpt_wrapped_{year_label.replace(' ','_').lower()}.jpg", mime="image/jpeg"
+            )
+        else:
+            st.info(
+                "Install optional image dependencies (kaleido) to generate a JPG preview." if not jpg_error else f"Could not generate JPG preview: {jpg_error}"
+            )
 
         st.caption("Token counts are derived from the export text using tokenisation. ChatGPT exports do not include official token usage.")
 
