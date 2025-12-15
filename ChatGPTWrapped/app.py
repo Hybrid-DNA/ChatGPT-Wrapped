@@ -121,8 +121,8 @@ def _filter_df(df: pd.DataFrame, year_choice: str, start: Optional[date], end: O
     return out
 
 
-def _render_upload_sidebar() -> tuple[Optional[st.runtime.uploaded_file_manager.UploadedFile], str]:  # type: ignore[name-defined]
-    """Render upload controls and return the chosen file and timezone."""
+def _render_upload_sidebar() -> tuple[Optional[st.runtime.uploaded_file_manager.UploadedFile], str, bool]:  # type: ignore[name-defined]
+    """Render upload controls and return the chosen file, timezone, and token counter preference."""
 
     with st.sidebar:
         st.subheader("Upload")
@@ -133,7 +133,19 @@ def _render_upload_sidebar() -> tuple[Optional[st.runtime.uploaded_file_manager.
         st.subheader("Token counting")
         st.caption("Token counts are estimated from message text; exports do not include official usage.")
 
-    return uploaded, timezone
+        _, has_tiktoken, err = get_token_counter()
+
+        use_tiktoken = st.checkbox(
+            "Use tiktoken for more accurate counts",
+            value=has_tiktoken,
+            disabled=not has_tiktoken,
+            help="Falls back to the heuristic estimator when disabled.",
+        )
+
+        if not has_tiktoken and err:
+            st.caption("tiktoken is not installed; using heuristic estimation instead.")
+
+    return uploaded, timezone, use_tiktoken
 
 
 def _render_filter_sidebar(years: List[str]) -> tuple[str, bool, Optional[date], Optional[date]]:
@@ -370,7 +382,7 @@ def main() -> None:
     st.title("✨ ChatGPT Wrapped")
     st.caption("Upload your ChatGPT export and get a clean, shareable year-in-review.")
 
-    uploaded, timezone = _render_upload_sidebar()
+    uploaded, timezone, use_tiktoken = _render_upload_sidebar()
 
     if not uploaded:
         st.info("Upload a ChatGPT export ZIP or a conversations.json file to begin.")
@@ -386,7 +398,7 @@ def main() -> None:
         st.error(f"Could not parse the uploaded file: {e}")
         st.stop()
 
-    df = _build_df(messages)
+    df = _build_df(messages, use_tiktoken)
     if df.empty:
         st.warning("No messages found in this export (or messages had no text).")
         st.stop()
