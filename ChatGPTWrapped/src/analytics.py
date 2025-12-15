@@ -40,18 +40,34 @@ def conversation_level(df: pd.DataFrame) -> pd.DataFrame:
         assistant_tokens=("tokens", lambda s: s[df.loc[s.index, "is_assistant"]].sum()),
     ).reset_index()
 
+    # Find the dominant category in each conversation based on token share
+    cat_tokens = (
+        df.groupby(["conversation_id", "category"], dropna=False)["tokens"]
+        .sum()
+        .reset_index()
+    )
+    cat_tokens.sort_values(["conversation_id", "tokens"], ascending=[True, False], inplace=True)
+    primary_category = cat_tokens.groupby("conversation_id").first().reset_index()[
+        ["conversation_id", "category"]
+    ]
+
+    out = out.merge(primary_category, on="conversation_id", how="left").rename(
+        columns={"category": "primary_category"}
+    )
+
     out["duration_minutes"] = (out["last_at"] - out["first_at"]).dt.total_seconds() / 60.0
     out["assistant_share"] = np.where(out["tokens"] > 0, out["assistant_tokens"] / out["tokens"], np.nan)
     return out.sort_values("tokens", ascending=False)
 
 
-def totals(df: pd.DataFrame) -> Dict[str, float]:
+def totals(df: pd.DataFrame, conv_df: pd.DataFrame | None = None) -> Dict[str, float]:
     if df.empty:
         return {}
 
     total_tokens = float(df["tokens"].sum())
     user_tokens = float(df.loc[df["is_user"], "tokens"].sum())
     assistant_tokens = float(df.loc[df["is_assistant"], "tokens"].sum())
+    total_minutes = float(conv_df["duration_minutes"].sum()) if conv_df is not None else 0.0
 
     return {
         "messages": int(df.shape[0]),
@@ -61,6 +77,8 @@ def totals(df: pd.DataFrame) -> Dict[str, float]:
         "assistant_tokens": int(assistant_tokens),
         "assistant_token_share": (assistant_tokens / total_tokens) if total_tokens else 0.0,
         "words": int(df["words"].sum()),
+        "active_minutes": total_minutes,
+        "active_hours": total_minutes / 60.0,
     }
 
 
@@ -81,11 +99,38 @@ def tokens_by_category_and_role(df: pd.DataFrame) -> pd.DataFrame:
             .reset_index())
 
 
+def time_by_category(conv_df: pd.DataFrame) -> pd.DataFrame:
+    if conv_df.empty or "primary_category" not in conv_df.columns:
+        return pd.DataFrame(columns=["category", "duration_minutes"])
+
+    return (
+        conv_df.groupby("primary_category", dropna=False)["duration_minutes"]
+        .sum()
+        .sort_values(ascending=False)
+        .reset_index()
+        .rename(columns={"primary_category": "category"})
+    )
+
+
 def tokens_over_time(df: pd.DataFrame, freq: str = "D") -> pd.DataFrame:
     if df.empty:
         return df
     ts = df.set_index("created_at").groupby("role")["tokens"].resample(freq).sum().reset_index()
     ts.rename(columns={"created_at": "time"}, inplace=True)
+    return ts
+
+
+def time_over_time(conv_df: pd.DataFrame, freq: str = "D") -> pd.DataFrame:
+    if conv_df.empty:
+        return conv_df
+
+    ts = (
+        conv_df.set_index("first_at")["duration_minutes"]
+        .resample(freq)
+        .sum()
+        .reset_index()
+    )
+    ts.rename(columns={"first_at": "time"}, inplace=True)
     return ts
 
 

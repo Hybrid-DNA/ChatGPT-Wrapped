@@ -15,6 +15,8 @@ from src.analytics import (
     build_message_dataframe,
     conversation_level,
     highlights,
+    time_by_category,
+    time_over_time,
     top_keywords,
     tokens_by_category,
     tokens_by_category_and_role,
@@ -35,6 +37,13 @@ DEFAULT_TZ = "Australia/Melbourne"
 
 def _format_int(n: int) -> str:
     return f"{n:,}"
+
+
+def _format_duration(minutes: float) -> str:
+    if minutes >= 60:
+        hours = minutes / 60
+        return f"{hours:.1f} hrs"
+    return f"{minutes:.0f} mins"
 
 
 @st.cache_data(show_spinner=False)
@@ -175,14 +184,27 @@ def _render_archetype_summary(archetype, flair, metrics, token_label: str) -> No
         with c6:
             metric_card("Assistant share", f"{metrics.get('assistant_token_share', 0) * 100:.1f}%")
 
+        c7, _, _ = st.columns(3, gap="small")
+        with c7:
+            metric_card("Active time", _format_duration(float(metrics.get("active_minutes", 0.0))))
 
-def _render_wrapped_tab(cat_df, hi, kw):
+
+def _render_wrapped_tab(cat_df, hi, kw, time_cat_df):
     a, b = st.columns([1.05, 0.95], gap="large")
     with a:
         st.subheader("What you used ChatGPT for")
         fig = px.pie(cat_df, values="tokens", names="category", hole=0.55, color_discrete_sequence=DATA_COLORS)
         fig.update_layout(margin=dict(l=10, r=10, t=10, b=10), height=420, legend_title_text="")
         st.plotly_chart(fig, use_container_width=True)
+
+        st.markdown("")
+        st.subheader("Where your time went")
+        if time_cat_df.empty:
+            st.caption("Not enough data to estimate time by category.")
+        else:
+            fig_time = px.pie(time_cat_df, values="duration_minutes", names="category", hole=0.55, color_discrete_sequence=DATA_COLORS)
+            fig_time.update_layout(margin=dict(l=10, r=10, t=10, b=10), height=420, legend_title_text="")
+            st.plotly_chart(fig_time, use_container_width=True)
 
     with b:
         st.subheader("Your highlights")
@@ -209,7 +231,7 @@ def _render_wrapped_tab(cat_df, hi, kw):
             st.dataframe(kw, use_container_width=True, height=330)
 
 
-def _render_deep_dive_tab(ts_df, by_cat_role, hm):
+def _render_deep_dive_tab(ts_df, time_ts_df, by_cat_role, hm):
     st.subheader("Activity over time")
     if not ts_df.empty:
         fig_ts = px.area(ts_df, x="time", y="tokens", color="role", color_discrete_sequence=DATA_COLORS)
@@ -217,6 +239,16 @@ def _render_deep_dive_tab(ts_df, by_cat_role, hm):
         st.plotly_chart(fig_ts, use_container_width=True)
     else:
         st.caption("Not enough timestamped data to build a timeline.")
+
+    st.markdown("")
+    st.subheader("Time spent over time")
+    if not time_ts_df.empty:
+        fig_time_ts = px.area(time_ts_df, x="time", y="duration_minutes", color_discrete_sequence=DATA_COLORS)
+        fig_time_ts.update_layout(margin=dict(l=10, r=10, t=10, b=10), height=320, showlegend=False)
+        fig_time_ts.update_yaxes(title_text="Minutes")
+        st.plotly_chart(fig_time_ts, use_container_width=True)
+    else:
+        st.caption("Not enough timestamped data to estimate time spent.")
 
     st.markdown("")
     c1, c2 = st.columns([1.0, 1.0], gap="large")
@@ -262,7 +294,7 @@ def _render_conversation_tab(conv_df):
         )
 
 
-def _render_downloads(year_choice, timezone, archetype, metrics, cat_df, ts_df, hi, df_f, conv_df):
+def _render_downloads(year_choice, timezone, archetype, metrics, cat_df, ts_df, time_cat_df, time_ts_df, hi, df_f, conv_df):
     st.subheader("Download your results")
     year_label = year_choice if year_choice != "All time" else "All time"
 
@@ -284,6 +316,8 @@ def _render_downloads(year_choice, timezone, archetype, metrics, cat_df, ts_df, 
             "longest_assistant": hi.get("longest_assistant"),
         },
         "top_categories": cat_df.head(10).to_dict(orient="records"),
+        "top_time_categories": time_cat_df.head(10).to_dict(orient="records"),
+        "time_over_time": time_ts_df.to_dict(orient="records"),
     }
 
     st.download_button(
@@ -314,6 +348,8 @@ def _render_downloads(year_choice, timezone, archetype, metrics, cat_df, ts_df, 
         metrics=metrics,
         tokens_cat=cat_df,
         tokens_time=ts_df,
+        time_cat=time_cat_df,
+        time_over_time=time_ts_df,
         highlights=hi,
         year_label=year_label,
     )
@@ -336,6 +372,8 @@ def _render_downloads(year_choice, timezone, archetype, metrics, cat_df, ts_df, 
             metrics=metrics,
             tokens_cat=cat_df,
             tokens_time=ts_df,
+            time_cat=time_cat_df,
+            time_over_time=time_ts_df,
             highlights=hi,
             year_label=year_label,
         )
@@ -395,10 +433,12 @@ def main() -> None:
     df_f = _filter_df(df, year_choice, None if ignore_dates else start_date, None if ignore_dates else end_date)
 
     conv_df = conversation_level(df_f)
-    metrics = totals(df_f)
+    metrics = totals(df_f, conv_df)
     cat_df = tokens_by_category(df_f)
     by_cat_role = tokens_by_category_and_role(df_f)
     ts_df = tokens_over_time(df_f, freq="D")
+    time_cat_df = time_by_category(conv_df)
+    time_ts_df = time_over_time(conv_df, freq="D")
     hm = activity_heatmap(df_f)
     kw = top_keywords(df_f, n=25)
     hi = highlights(df_f, conv_df)
@@ -412,16 +452,16 @@ def main() -> None:
     tab_wrapped, tab_dive, tab_convos, tab_download = st.tabs(["Wrapped", "Deep dive", "Conversations", "Download"])
 
     with tab_wrapped:
-        _render_wrapped_tab(cat_df, hi, kw)
+        _render_wrapped_tab(cat_df, hi, kw, time_cat_df)
 
     with tab_dive:
-        _render_deep_dive_tab(ts_df, by_cat_role, hm)
+        _render_deep_dive_tab(ts_df, time_ts_df, by_cat_role, hm)
 
     with tab_convos:
         _render_conversation_tab(conv_df)
 
     with tab_download:
-        _render_downloads(year_choice, timezone, archetype, metrics, cat_df, ts_df, hi, df_f, conv_df)
+        _render_downloads(year_choice, timezone, archetype, metrics, cat_df, ts_df, time_cat_df, time_ts_df, hi, df_f, conv_df)
 
 
 if __name__ == "__main__":
