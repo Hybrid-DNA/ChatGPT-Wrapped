@@ -25,14 +25,20 @@ def inject_css() -> None:
   --text: {TEXT_COLOR};
   --muted: {MUTED_TEXT_COLOR};
   --accent: {ACCENT_COLOR};
+  --accent-amber: #FEC306;
+  --accent-green: #A6B727;
+  --accent-orange: #DF5327;
   --font-primary: {PRIMARY_FONT};
   --font-secondary: {SECONDARY_FONT};
   color-scheme: light;
 }}
 html, body {{
-  background: radial-gradient(circle at 10% 10%, color-mix(in srgb, var(--accent) 16%, white) 0, transparent 40%),
-              radial-gradient(circle at 90% 0%, color-mix(in srgb, var(--accent) 8%, #7E5DEB) 0, transparent 35%),
-              var(--bg);
+  background:
+    radial-gradient(circle at 12% 16%, color-mix(in srgb, var(--accent) 12%, transparent) 0, transparent 26%),
+    linear-gradient(90deg, color-mix(in srgb, var(--accent) 6%, transparent) 1px, transparent 1px),
+    linear-gradient(180deg, color-mix(in srgb, var(--accent) 4%, transparent) 1px, transparent 1px),
+    var(--bg);
+  background-size: 220px 220px, 120px 120px, 120px 120px, auto;
   color: var(--text);
   font-family: var(--font-primary);
 }}
@@ -43,95 +49,99 @@ p, .stMarkdown {{ color: var(--text); font-family: var(--font-primary); }}
 
 /* Sidebar */
 .stSidebar {{
-  background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 10%, #0f172a) 0%, #0b1224 100%);
-  color: white;
-  border-right: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
+  background: linear-gradient(180deg, #f1f5fa 0%, #e5edf5 100%);
+  color: var(--text);
+  border-right: 1px solid color-mix(in srgb, var(--text) 10%, transparent);
 }}
 .stSidebar .stButton>button, .stSidebar .stDownloadButton>button {{
-  border-radius: 14px;
-  border: 1px solid color-mix(in srgb, white 20%, transparent);
-  background: color-mix(in srgb, var(--accent) 12%, #10182f);
-  color: white;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--text) 12%, transparent);
+  background: white;
+  color: var(--text);
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--text) 8%, transparent);
 }}
 
 /* Hero */
 .hero {{
   position: relative;
   overflow: hidden;
-  padding: 24px 24px 26px;
+  padding: 22px 24px 24px;
   border-radius: 18px;
-  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 22%, #8B5CF6) 0%, #111827 85%);
-  color: white;
-  box-shadow: 0 25px 55px rgba(17, 24, 39, 0.25);
-  border: 1px solid color-mix(in srgb, white 12%, transparent);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 12%, white) 0%, white 85%);
+  color: var(--text);
+  box-shadow: 0 18px 36px rgba(18, 53, 82, 0.12);
+  border: 1px solid color-mix(in srgb, var(--text) 10%, transparent);
   }}
 .hero__orbit {{
   position: absolute;
-  inset: -20%;
-  background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0) 60%);
-  filter: blur(28px);
+  inset: -10% 20% auto -10%;
+  height: 220px;
+  background: radial-gradient(circle, color-mix(in srgb, var(--accent) 14%, transparent) 0%, transparent 55%);
+  filter: blur(20px);
 }}
 .hero__content {{ position: relative; z-index: 1; max-width: 720px; }}
-.hero h1 {{ margin: 0 0 8px; font-size: 2.35rem; }}
-.hero .lede {{ color: color-mix(in srgb, white 85%, rgba(255,255,255,0.8)); max-width: 640px; }}
+.hero h1 {{ margin: 0 0 8px; font-size: 2.25rem; }}
+.hero .lede {{ color: color-mix(in srgb, var(--text) 70%, var(--muted)); max-width: 640px; }}
 .hero__glow {{
   position: absolute;
-  right: -12%;
-  top: -35%;
-  width: 280px;
-  height: 280px;
-  background: radial-gradient(circle, color-mix(in srgb, var(--accent) 30%, #C084FC) 0%, transparent 60%);
-  filter: blur(18px);
-  opacity: 0.8;
+  right: -8%;
+  top: -28%;
+  width: 220px;
+  height: 220px;
+  background: radial-gradient(circle, color-mix(in srgb, var(--accent-orange) 22%, transparent) 0%, transparent 65%);
+  filter: blur(16px);
+  opacity: 0.65;
 }}
-.eyebrow {{ text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.74rem; color: color-mix(in srgb, white 70%, rgba(255,255,255,0.6)); margin-bottom: 6px; font-family: var(--font-secondary); }}
+.eyebrow {{ text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.74rem; color: var(--muted); margin-bottom: 6px; font-family: var(--font-secondary); }}
 .muted {{ color: color-mix(in srgb, var(--text) 55%, transparent); font-family: var(--font-secondary); }}
 .hero__pills {{ margin-top: 10px; display: flex; gap: 0.5rem; flex-wrap: wrap; }}
 
 /* Cards */
 .card {{
-  border: 1px solid color-mix(in srgb, var(--text) 12%, transparent);
-  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--text) 10%, transparent);
+  border-radius: 16px;
   padding: 14px 14px 12px;
-  background: color-mix(in srgb, white 82%, color-mix(in srgb, var(--accent) 6%, transparent));
-  box-shadow: 0 20px 40px color-mix(in srgb, var(--accent) 10%, transparent);
+  background: color-mix(in srgb, white 90%, color-mix(in srgb, var(--accent) 6%, transparent));
+  box-shadow: 0 12px 32px rgba(18, 53, 82, 0.08);
   position: relative;
   overflow: hidden;
   }}
 .card:before {{
   content: "";
   position: absolute;
-  inset: -40% 30% 50% -40%;
-  background: radial-gradient(circle, color-mix(in srgb, var(--accent) 15%, transparent) 0%, transparent 55%);
-  opacity: 0.6;
+  inset: -40% 28% 52% -38%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--accent-green) 22%, transparent) 0%, transparent 55%);
+  opacity: 0.4;
 }}
-.card .k {{ font-size: 0.82rem; color: var(--muted); font-family: var(--font-secondary); letter-spacing: 0.01em; text-transform: uppercase; }}
+.card .k {{ font-size: 0.82rem; color: var(--muted); font-family: var(--font-secondary); letter-spacing: 0.02em; text-transform: uppercase; }}
 .card .v {{ font-size: 1.45rem; margin-top: 0.3rem; color: var(--text); font-weight: 700; }}
 
 /* Pills */
 .pill {{
   display: inline-block;
-  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
   border-radius: 999px;
   padding: 0.25rem 0.75rem;
   font-size: 0.85rem;
   color: var(--muted);
-  background: color-mix(in srgb, var(--accent) 10%, white);
+  background: color-mix(in srgb, var(--accent) 6%, white);
   margin-right: 0.35rem;
   margin-bottom: 0.35rem;
   font-family: var(--font-secondary);
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(3px);
   }}
-.pill-strong {{ color: #0b1224; background: white; border-color: color-mix(in srgb, var(--accent) 35%, white); font-weight: 600; }}
+.pill-strong {{ color: var(--text); background: white; border-color: color-mix(in srgb, var(--accent) 30%, white); font-weight: 600; }}
 .hr {{ height:1px; background: color-mix(in srgb, var(--text) 9%, transparent); margin: 0.9rem 0; }}
 
 /* Tabs & data */
 .stTabs [data-baseweb="tab"] {{
-  background: color-mix(in srgb, white 90%, transparent);
-  border-radius: 14px 14px 0 0;
+  background: color-mix(in srgb, white 96%, transparent);
+  border-radius: 12px 12px 0 0;
   margin-right: 0.25rem;
-  padding: 0.8rem 1rem;
+  padding: 0.75rem 1rem;
   font-weight: 600;
+  border: 1px solid color-mix(in srgb, var(--text) 6%, transparent);
+  border-bottom: none;
 }}
 .stTabs [data-baseweb="tab"]:hover {{
   background: color-mix(in srgb, var(--accent) 12%, white);
@@ -146,7 +156,7 @@ p, .stMarkdown {{ color: var(--text); font-family: var(--font-primary); }}
   background: white;
   border-radius: 18px;
   border: 1px solid color-mix(in srgb, var(--text) 10%, transparent);
-  box-shadow: 0 18px 35px color-mix(in srgb, var(--accent) 10%, transparent);
+  box-shadow: 0 10px 24px rgba(18, 53, 82, 0.08);
   padding: 0.35rem;
 }}
 
@@ -155,11 +165,11 @@ p, .stMarkdown {{ color: var(--text); font-family: var(--font-primary); }}
   display: flex;
   gap: 14px;
   align-items: center;
-  background: color-mix(in srgb, var(--accent) 10%, white);
+  background: color-mix(in srgb, var(--accent) 8%, white);
   border: 1px dashed color-mix(in srgb, var(--text) 18%, transparent);
   padding: 16px 18px;
   border-radius: 14px;
-  box-shadow: 0 12px 28px color-mix(in srgb, var(--accent) 10%, transparent);
+  box-shadow: 0 8px 18px rgba(18, 53, 82, 0.05);
 }}
 .empty-state__icon {{
   width: 48px;
@@ -169,20 +179,20 @@ p, .stMarkdown {{ color: var(--text); font-family: var(--font-primary); }}
   background: white;
   border-radius: 12px;
   font-size: 1.4rem;
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 20%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 16%, transparent);
 }}
 
 /* Buttons */
 .stDownloadButton>button, .stButton>button {{
-  background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 70%, #7E5DEB));
-  color: white;
-  border-radius: 14px;
-  border: none;
+  background: linear-gradient(120deg, color-mix(in srgb, var(--accent) 85%, white) 0%, color-mix(in srgb, var(--accent-amber) 55%, white) 100%);
+  color: #0b243b;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--text) 8%, transparent);
   padding: 0.55rem 1rem;
-  font-weight: 600;
-  box-shadow: 0 18px 34px color-mix(in srgb, var(--accent) 22%, transparent);
+  font-weight: 650;
+  box-shadow: 0 12px 26px rgba(18, 53, 82, 0.16);
 }}
-.stDownloadButton>button:hover, .stButton>button:hover {{ filter: brightness(1.05); }}
+.stDownloadButton>button:hover, .stButton>button:hover {{ filter: brightness(1.03); }}
 
 /* Streamlit tweaks */
 .st-emotion-cache-1u0u0jh p {{ color: var(--muted); }}
