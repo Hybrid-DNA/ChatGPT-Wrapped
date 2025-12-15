@@ -1,4 +1,6 @@
 DATA_COLORS = ["#418AB3", "#A6B727", "#F69200", "#123552", "#FEC306", "#DF5327", "#9D44B5", "#6E0D25"]
+# Used for time-of-day heatmaps to provide a single-color gradient from white to deep blue.
+HEATMAP_BLUE_SCALE = ["#FFFFFF", "#E7F1FA", "#C5DAF1", "#94B7E0", "#5A8ABF", "#1F4B84", "#0F2F61"]
 
 PRIMARY_FONT = "Georgia, 'Times New Roman', Times, serif"
 SECONDARY_FONT = "'Segoe UI', 'Helvetica Neue', Arial, sans-serif"

@@ -27,7 +27,7 @@ from src.parse_export import ParsedMessage, parse_conversations
 from src.report_export import build_wrapped_html, build_wrapped_jpg
 from src.tokens import estimate_tokens_heuristic, get_token_counter
 from src.ui_helpers import inject_css, metric_card, pills
-from src.theme import apply_plotly_theme, DATA_COLORS
+from src.theme import HEATMAP_BLUE_SCALE, apply_plotly_theme, DATA_COLORS
 
 APP_TITLE = "ChatGPT Wrapped"
 DEFAULT_TZ = "Australia/Melbourne"
@@ -233,7 +233,7 @@ def _render_deep_dive_tab(ts_df, by_cat_role, hm):
             hm2 = hm.copy()
             hm2.index.name = "Day"
             hm2.columns = [str(int(c)) for c in hm2.columns]
-            fig_hm = px.imshow(hm2, aspect="auto", color_continuous_scale=DATA_COLORS)
+            fig_hm = px.imshow(hm2, aspect="auto", color_continuous_scale=HEATMAP_BLUE_SCALE)
             fig_hm.update_layout(margin=dict(l=10, r=10, t=10, b=10), height=420, coloraxis_showscale=False)
             st.plotly_chart(fig_hm, use_container_width=True)
 
