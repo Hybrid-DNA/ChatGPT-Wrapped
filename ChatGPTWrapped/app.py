@@ -76,7 +76,7 @@ def _load_messages_from_upload(raw: bytes, name: str, timezone: str) -> List[Par
 
 
 @st.cache_data(show_spinner=False)
-def _build_df(messages: List[ParsedMessage], use_tiktoken: bool) -> pd.DataFrame:
+def _build_df(messages: List[ParsedMessage], use_tiktoken: bool = True) -> pd.DataFrame:
     counter_fn, has_tiktoken, _ = get_token_counter()
     counter = counter_fn if use_tiktoken and has_tiktoken else estimate_tokens_heuristic
 
@@ -379,13 +379,42 @@ def main() -> None:
     apply_plotly_theme()
     inject_css()
 
-    st.title("✨ ChatGPT Wrapped")
-    st.caption("Upload your ChatGPT export and get a clean, shareable year-in-review.")
+    st.markdown(
+        """
+        <div class="hero">
+            <div class="hero__orbit"></div>
+            <div class="hero__content">
+                <p class="eyebrow">Year-in-review, reimagined</p>
+                <h1>✨ ChatGPT Wrapped</h1>
+                <p class="lede">Upload your ChatGPT export to unlock cinematic visuals, archetypes, and share-ready insights.</p>
+                <div class="hero__pills">
+                    <span class="pill pill-strong">Guided storytelling</span>
+                    <span class="pill pill-strong">Polished charts</span>
+                    <span class="pill pill-strong">One-click downloads</span>
+                </div>
+            </div>
+            <div class="hero__glow"></div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
     uploaded, timezone, use_tiktoken = _render_upload_sidebar()
 
     if not uploaded:
-        st.info("Upload a ChatGPT export ZIP or a conversations.json file to begin.")
+        st.markdown(
+            """
+            <div class="empty-state">
+                <div class="empty-state__icon">📤</div>
+                <div>
+                    <p class="eyebrow">No file yet</p>
+                    <h3>Drop in your ChatGPT export</h3>
+                    <p class="muted">Upload a ZIP or conversations.json file in the sidebar to generate your Wrapped.</p>
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
         st.stop()
 
     upload_name = getattr(uploaded, "name", "") or ""
