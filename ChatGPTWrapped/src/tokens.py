@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import Callable
+from typing import Callable, Tuple
 
 _CODE_HINTS = re.compile(r"(\bSELECT\b|\bCREATE\b|\bFROM\b|\bWHERE\b|def\s+|import\s+|```|\{|\};)", re.I)
 
@@ -15,13 +15,16 @@ def estimate_tokens_heuristic(text: str) -> int:
     divisor = 3.1 if _CODE_HINTS.search(t) else 4.0
     return max(1, int(len(t) / divisor))
 
-def get_token_counter() -> Callable[[str], int]:
-    """Prefer tiktoken if installed; otherwise fall back to heuristic."""
+def get_token_counter() -> Tuple[Callable[[str], int], bool]:
+    """Return a token counter and whether it uses tiktoken."""
     try:
         import tiktoken  # type: ignore
+
         enc = tiktoken.get_encoding("cl100k_base")
+
         def count(text: str) -> int:
             return len(enc.encode(text))
-        return count
+
+        return count, True
     except Exception:
-        return estimate_tokens_heuristic
+        return estimate_tokens_heuristic, False
