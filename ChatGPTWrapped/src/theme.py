@@ -1,13 +1,22 @@
-DATA_COLORS = ["#7BD3EA", "#F6C7FF", "#F9E795", "#7E5DEB", "#2E8B9C", "#FF9F66", "#E25C84", "#2F4550"]
+DATA_COLORS = [
+    "#418AB3",
+    "#A6B727",
+    "#F69200",
+    "#123552",
+    "#FEC306",
+    "#DF5327",
+    "#9D44B5",
+    "#6E0D25",
+]
 # Used for time-of-day heatmaps to provide a single-color gradient from white to deep blue.
-HEATMAP_BLUE_SCALE = ["#FFFFFF", "#E5EDFB", "#C7D8F4", "#9DBBEA", "#6B92DC", "#3B5DB7", "#1F2F70"]
+HEATMAP_BLUE_SCALE = ["#FFFFFF", "#E6EEF5", "#D0DFEC", "#ABC6DD", "#7CA6C9", "#4D83AE", "#123552"]
 
 PRIMARY_FONT = "'Space Grotesk', 'Inter', system-ui, -apple-system, sans-serif"
 SECONDARY_FONT = "'Inter', system-ui, -apple-system, sans-serif"
-BACKGROUND_COLOR = "#f7f8fb"
-TEXT_COLOR = "#0f172a"
-MUTED_TEXT_COLOR = "#525f78"
-ACCENT_COLOR = DATA_COLORS[3]
+BACKGROUND_COLOR = "#f5f8fb"
+TEXT_COLOR = "#123552"
+MUTED_TEXT_COLOR = "#5b6e80"
+ACCENT_COLOR = DATA_COLORS[0]
 
 
 def apply_plotly_theme():
