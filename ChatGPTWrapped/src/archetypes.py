@@ -15,7 +15,7 @@ class Archetype:
 
 
 PRIMARY_ARCHETYPES = {
-    "Data engineering and SQL": Archetype(
+    "Data engineering": Archetype(
         title="Technician",
         tagline="You chase correctness, performance, and clean data like it is a sport.",
         emoji="🛠️",
@@ -97,7 +97,7 @@ SECONDARY_ARCHETYPES: Dict[Tuple[str, str], Archetype] = {
         emoji="🏔️",
         traits=("Opportunity-first", "Model-aware", "Market translator"),
     ),
-    ("AI and LLMs", "Data engineering and SQL"): Archetype(
+    ("AI and LLMs", "Data engineering"): Archetype(
         title="Model Wrangler",
         tagline="You connect clean data to hungry models and keep the pipes flowing.",
         emoji="🧰",
@@ -115,13 +115,13 @@ SECONDARY_ARCHETYPES: Dict[Tuple[str, str], Archetype] = {
         emoji="🧱",
         traits=("Threat-aware", "Practical", "Defense-in-depth"),
     ),
-    ("Data engineering and SQL", "Analytics and reporting"): Archetype(
+    ("Data engineering", "Analytics and reporting"): Archetype(
         title="Pipeline Navigator",
         tagline="You architect flows that make analysis trustworthy and fast.",
         emoji="🛰️",
         traits=("End-to-end thinker", "Schema-loyal", "Latency-aware"),
     ),
-    ("Data engineering and SQL", "Data quality and parsing"): Archetype(
+    ("Data engineering", "Data quality and parsing"): Archetype(
         title="Data Conservator",
         tagline="You obsess over lineage, versioning, and long-lived truth.",
         emoji="🏺",
