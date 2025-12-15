@@ -29,6 +29,15 @@ def conversation_level(df: pd.DataFrame) -> pd.DataFrame:
     if df.empty:
         return df
 
+    def _estimated_duration_minutes(times: pd.Series, max_gap_minutes: int = 20) -> float:
+        times = times.sort_values()
+        if times.empty:
+            return 0.0
+
+        deltas = times.diff().dropna()
+        capped = deltas.clip(upper=pd.Timedelta(minutes=max_gap_minutes))
+        return capped.sum().total_seconds() / 60.0
+
     g = df.groupby(["conversation_id", "conversation_title"], dropna=False)
     out = g.agg(
         first_at=("created_at", "min"),
@@ -51,11 +60,18 @@ def conversation_level(df: pd.DataFrame) -> pd.DataFrame:
         ["conversation_id", "category"]
     ]
 
-    out = out.merge(primary_category, on="conversation_id", how="left").rename(
-        columns={"category": "primary_category"}
+    durations = (
+        g["created_at"]
+        .apply(_estimated_duration_minutes)
+        .reset_index(name="duration_minutes")
     )
 
-    out["duration_minutes"] = (out["last_at"] - out["first_at"]).dt.total_seconds() / 60.0
+    out = (
+        out.merge(durations, on=["conversation_id", "conversation_title"], how="left")
+        .merge(primary_category, on="conversation_id", how="left")
+        .rename(columns={"category": "primary_category"})
+    )
+
     out["assistant_share"] = np.where(out["tokens"] > 0, out["assistant_tokens"] / out["tokens"], np.nan)
     return out.sort_values("tokens", ascending=False)
 
