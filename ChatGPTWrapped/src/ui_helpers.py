@@ -111,6 +111,23 @@ p, .stMarkdown {{ color: var(--text); font-family: var(--font-primary); line-hei
 }}
 .pill-strong {{ color: var(--text); background: color-mix(in srgb, var(--accent) 12%, white); border-color: var(--border); font-weight: 600; }}
 .hr {{ height:1px; background: var(--border); margin: 0.9rem 0; }}
+  .hybrid-tag {{
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--accent) 10%, white);
+    border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--border));
+    font-family: var(--font-secondary);
+    font-size: 0.9rem;
+    color: var(--text);
+    text-decoration: none;
+    box-shadow: 0 8px 18px rgba(56, 125, 165, 0.14);
+  }}
+  .hybrid-tag a {{ color: inherit; text-decoration: none; font-weight: 650; }}
+  .hybrid-tag a:hover {{ text-decoration: underline; }}
+  .hybrid-tag--muted {{ background: #f5f7fb; box-shadow: none; }}
 
 /* Tabs & data */
 .stTabs [data-baseweb="tab"] {{
@@ -200,5 +217,18 @@ def pills(items: List[str]) -> None:
         return
     st.markdown(
         "".join([f'<span class="pill">{html.escape(x)}</span>' for x in items if x]),
+        unsafe_allow_html=True,
+    )
+
+
+def hybrid_dna_tag(muted: bool = False) -> None:
+    """Render a small creator tag that links to Hybrid DNA."""
+
+    st.markdown(
+        f"""
+<span class="hybrid-tag{' hybrid-tag--muted' if muted else ''}">
+  Created by <a href="mailto:justin@hybriddna.com.au">Hybrid DNA</a>
+</span>
+""",
         unsafe_allow_html=True,
     )
